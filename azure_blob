@@ -1,13 +1,9 @@
 import asyncio
-import aiofiles
-from azure.storage.blob.aio import BlobServiceClient, ContainerClient
+from azure.storage.blob.aio import BlobServiceClient
 from azure.core.exceptions import ResourceExistsError
 from urllib.parse import urlparse
 import os
-from dotenv import load_dotenv
 from datetime import datetime
-
-load_dotenv()
 
 class AsyncAzureBlobStorageService:
     def __init__(self):
@@ -19,16 +15,7 @@ class AsyncAzureBlobStorageService:
         self.containerName = pathParts[1]
         self.blob_service_client = BlobServiceClient(account_url=self.accountEndpoint, credential=self.sasToken)
 
-    async def get_table_scheme(self, table_name: str) -> str:
-        """This function retrieves the guidelines from the Azure blob storage"""
-        async with self.blob_service_client.get_container_client(self.containerName) as container_client:
-            blob_client = container_client.get_blob_client(table_name)
-            downloaded_blob = await blob_client.download_blob()
-            blob_content = await downloaded_blob.content_as_text()
-            return blob_content
-
     async def create_container(self, container_name: str) -> str:
-        """Create a container if it doesn't exist"""
         async with self.blob_service_client.get_container_client(container_name) as container_client:
             try:
                 await container_client.create_container()
@@ -37,44 +24,23 @@ class AsyncAzureBlobStorageService:
                 return f"Container '{container_name}' already exists."
 
     def get_txt_files(self, folder_path: str) -> list:
-        """Get a list of all .txt files in the specified folder"""
-        txt_files = []
-        for file in os.listdir(folder_path):
-            if file.endswith(".txt"):
-                txt_files.append(os.path.join(folder_path, file))
-        return txt_files
+        return [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.endswith(".txt")]
 
     async def upload_file(self, file_path: str, container_name: str, blob_name: str) -> str:
-        """Upload a single file to Azure Blob Storage"""
         async with self.blob_service_client.get_container_client(container_name) as container_client:
             blob_client = container_client.get_blob_client(blob_name)
-            async with aiofiles.open(file_path, 'rb') as data:
-                await blob_client.upload_blob(await data.read(), overwrite=True)
+            with open(file_path, 'rb') as data:
+                await blob_client.upload_blob(data.read(), overwrite=True)
         return blob_name
 
     async def upload_files(self, folder_path: str, container_name: str, user_prompt: str) -> list:
-        """Upload all .txt files from the specified folder to a virtual directory"""
-        # Ensure the container exists
         await self.create_container(container_name)
-        
-        # Generate the virtual directory name
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         virtual_directory = f"{user_prompt}_{timestamp}"
-        
-        # Get list of .txt files
         txt_files = self.get_txt_files(folder_path)
-        
-        # Create tasks for concurrent file uploads
-        tasks = []
-        for file_path in txt_files:
-            file_name = os.path.basename(file_path)
-            blob_name = f"{virtual_directory}/{file_name}"
-            tasks.append(self.upload_file(file_path, container_name, blob_name))
-        
-        # Run tasks concurrently and collect results
-        uploaded_files = await asyncio.gather(*tasks)
-        
-        return uploaded_files
+        tasks = [self.upload_file(file_path, container_name, f"{virtual_directory}/{os.path.basename(file_path)}") 
+                 for file_path in txt_files]
+        return await asyncio.gather(*tasks)
 
 # Example usage
 async def main():
