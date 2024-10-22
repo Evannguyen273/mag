@@ -1,56 +1,203 @@
-import asyncio
-from azure.storage.blob.aio import BlobServiceClient
-from azure.core.exceptions import ResourceExistsError
+from azure.storage.blob import BlobServiceClient, ContainerClient
 from urllib.parse import urlparse
 import os
 from datetime import datetime
+import asyncio
+from typing import List
 
-class AsyncAzureBlobStorageService:
-    def __init__(self):
-        sas_url = os.environ.get("container_sas_url")
+class AzureBlobStorageService:
+    def __init__(self, container_name: str):
+        # Get the SAS URL for the specified container
+        sas_url = os.environ.get(container_name)
+        if not sas_url:
+            raise ValueError(f"No SAS URL found for container: {container_name}")
+
+        # Parse the SAS URL
         sasUrlParts = urlparse(sas_url)
         self.accountEndpoint = f"{sasUrlParts.scheme}://{sasUrlParts.netloc}"
         self.sasToken = sasUrlParts.query
         pathParts = sasUrlParts.path.split('/')
         self.containerName = pathParts[1]
-        self.blob_service_client = BlobServiceClient(account_url=self.accountEndpoint, credential=self.sasToken)
 
-    async def create_container(self, container_name: str) -> str:
-        async with self.blob_service_client.get_container_client(container_name) as container_client:
-            try:
-                await container_client.create_container()
-                return f"Container '{container_name}' created successfully."
-            except ResourceExistsError:
-                return f"Container '{container_name}' already exists."
+        # Initialize the clients
+        self.container_client = ContainerClient(
+            self.accountEndpoint,
+            self.containerName,
+            self.sasToken
+        )
+        self.blob_service_client = BlobServiceClient(
+            account_url=self.accountEndpoint,
+            credential=self.sasToken
+        )
 
-    def get_txt_files(self, folder_path: str) -> list:
-        return [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.endswith(".txt")]
+    def get_txt_files(self, folder_path: str) -> List[str]:
+        """
+        Get a list of all .txt files in the specified folder
+        
+        Args:
+            folder_path: Path to the folder containing .txt files
+            
+        Returns:
+            List of file paths
+        """
+        if not os.path.exists(folder_path):
+            raise ValueError(f"Folder not found: {folder_path}")
+            
+        txt_files = []
+        for file in os.listdir(folder_path):
+            if file.endswith(".txt"):
+                txt_files.append(os.path.join(folder_path, file))
+        return txt_files
 
-    async def upload_file(self, file_path: str, container_name: str, blob_name: str) -> str:
-        async with self.blob_service_client.get_container_client(container_name) as container_client:
-            blob_client = container_client.get_blob_client(blob_name)
-            with open(file_path, 'rb') as data:
-                await blob_client.upload_blob(data.read(), overwrite=True)
-        return blob_name
+    def upload_file(self, file_path: str, virtual_directory: str = None) -> str:
+        """
+        Upload a single file to the blob container
+        
+        Args:
+            file_path: Path to the file to upload
+            virtual_directory: Optional virtual directory name
+            
+        Returns:
+            Blob URL
+        """
+        if not os.path.exists(file_path):
+            raise ValueError(f"File not found: {file_path}")
 
-    async def upload_files(self, folder_path: str, container_name: str, user_prompt: str) -> list:
-        await self.create_container(container_name)
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        virtual_directory = f"{user_prompt}_{timestamp}"
+        # Get file name
+        file_name = os.path.basename(file_path)
+        
+        # Create blob name (with virtual directory if specified)
+        if virtual_directory:
+            blob_name = f"{virtual_directory}/{file_name}"
+        else:
+            blob_name = file_name
+
+        # Upload the file
+        blob_client = self.container_client.get_blob_client(blob_name)
+        with open(file_path, "rb") as data:
+            blob_client.upload_blob(data, overwrite=True)
+            
+        return blob_client.url
+
+    def upload_multiple_files(self, folder_path: str, user_prompt: str = None) -> List[str]:
+        """
+        Upload multiple .txt files from a folder
+        
+        Args:
+            folder_path: Path to the folder containing files
+            user_prompt: Optional prefix for virtual directory name
+            
+        Returns:
+            List of uploaded blob URLs
+        """
+        # Get list of .txt files
         txt_files = self.get_txt_files(folder_path)
-        tasks = [self.upload_file(file_path, container_name, f"{virtual_directory}/{os.path.basename(file_path)}") 
-                 for file_path in txt_files]
+        
+        if not txt_files:
+            raise ValueError(f"No .txt files found in folder: {folder_path}")
+
+        # Generate virtual directory name with timestamp if user_prompt is provided
+        virtual_directory = None
+        if user_prompt:
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            virtual_directory = f"{user_prompt}_{timestamp}"
+
+        # Upload each file
+        uploaded_urls = []
+        for file_path in txt_files:
+            try:
+                url = self.upload_file(file_path, virtual_directory)
+                uploaded_urls.append(url)
+                print(f"Uploaded: {file_path}")
+            except Exception as e:
+                print(f"Error uploading {file_path}: {str(e)}")
+
+        return uploaded_urls
+
+    async def upload_file_async(self, file_path: str, virtual_directory: str = None) -> str:
+        """
+        Upload a single file asynchronously
+        
+        Args:
+            file_path: Path to the file to upload
+            virtual_directory: Optional virtual directory name
+            
+        Returns:
+            Blob URL
+        """
+        if not os.path.exists(file_path):
+            raise ValueError(f"File not found: {file_path}")
+
+        file_name = os.path.basename(file_path)
+        blob_name = f"{virtual_directory}/{file_name}" if virtual_directory else file_name
+
+        with open(file_path, "rb") as data:
+            blob_client = self.container_client.get_blob_client(blob_name)
+            await blob_client.upload_blob(data.read(), overwrite=True)
+            return blob_client.url
+
+    async def upload_multiple_files_async(self, folder_path: str, user_prompt: str = None) -> List[str]:
+        """
+        Upload multiple files asynchronously
+        
+        Args:
+            folder_path: Path to the folder containing files
+            user_prompt: Optional prefix for virtual directory name
+            
+        Returns:
+            List of uploaded blob URLs
+        """
+        txt_files = self.get_txt_files(folder_path)
+        
+        if not txt_files:
+            raise ValueError(f"No .txt files found in folder: {folder_path}")
+
+        virtual_directory = None
+        if user_prompt:
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            virtual_directory = f"{user_prompt}_{timestamp}"
+
+        tasks = [
+            self.upload_file_async(file_path, virtual_directory)
+            for file_path in txt_files
+        ]
+        
         return await asyncio.gather(*tasks)
 
 # Example usage
-async def main():
-    azure_service = AsyncAzureBlobStorageService()
-    folder_path = "Prompt_Templates"
-    container_name = "my_container"
-    user_prompt = "templates_upload"
-    
-    uploaded_files = await azure_service.upload_files(folder_path, container_name, user_prompt)
-    print(f"Uploaded files: {uploaded_files}")
-
 if __name__ == "__main__":
+    # Create service instance
+    templates_service = AzureBlobStorageService("PRINTED_TEMPLATES_SAS_URL")
+    
+    # Synchronous upload
+    try:
+        # Upload a single file
+        url = templates_service.upload_file(
+            "path/to/file.txt",
+            "my_virtual_directory"
+        )
+        print(f"Uploaded file: {url}")
+        
+        # Upload multiple files
+        urls = templates_service.upload_multiple_files(
+            "Prompt_Templates",
+            "batch_upload"
+        )
+        print(f"Uploaded files: {urls}")
+        
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        
+    # Asynchronous upload
+    async def main():
+        try:
+            urls = await templates_service.upload_multiple_files_async(
+                "Prompt_Templates",
+                "batch_upload"
+            )
+            print(f"Uploaded files asynchronously: {urls}")
+        except Exception as e:
+            print(f"Error: {str(e)}")
+    
+    # Run async upload
     asyncio.run(main())
