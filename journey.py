@@ -168,3 +168,186 @@ summary_report = analyzer.generate_summary_report()
 analyzer.plot_delivery_performance()
 plt.show()
 """
+
+
+-----------------------------------------------
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from datetime import datetime
+
+class WeeklyPatternAnalyzer:
+    def __init__(self, df):
+        """
+        Initialize with a pandas DataFrame containing e-commerce data
+        """
+        self.df = df.copy()
+        self._prepare_data()
+    
+    def _prepare_data(self):
+        """
+        Prepare data for weekly analysis
+        """
+        # Convert timestamps
+        self.df['orderdate_timestamp'] = pd.to_datetime(self.df['orderdate_timestamp'])
+        
+        # Extract time components
+        self.df['day_of_week'] = self.df['orderdate_timestamp'].dt.day_name()
+        self.df['hour_of_day'] = self.df['orderdate_timestamp'].dt.hour
+        self.df['week_number'] = self.df['orderdate_timestamp'].dt.isocalendar().week
+        self.df['week_start'] = self.df['orderdate_timestamp'].dt.to_period('W').dt.start_time
+        
+        # Convert flags
+        flag_columns = ['is_return_flag', 'is_short_pick', 'is_zero_pick', 
+                       'is_on_time', 'is_delivery_failure']
+        for col in flag_columns:
+            self.df[col] = self.df[col].eq('Y')
+        
+        self.df['deliverymode'] = self.df['deliverymode'].eq('1')
+
+    def daily_pattern_analysis(self):
+        """
+        Analyze patterns by day of week
+        """
+        daily_metrics = self.df.groupby('day_of_week').agg({
+            'orderid': 'nunique',
+            'is_on_time': 'mean',
+            'is_delivery_failure': 'mean',
+            'deliverymode': 'mean',
+            'is_return_flag': 'mean',
+            'consignment_deliverycost': 'mean'
+        }).reset_index()
+        
+        # Convert rates to percentages
+        rate_columns = ['is_on_time', 'is_delivery_failure', 'deliverymode', 'is_return_flag']
+        daily_metrics[rate_columns] = daily_metrics[rate_columns] * 100
+        
+        return daily_metrics
+
+    def hourly_pattern_analysis(self):
+        """
+        Analyze patterns by hour of day for each day of week
+        """
+        hourly_metrics = self.df.groupby(['day_of_week', 'hour_of_day']).agg({
+            'orderid': 'nunique',
+            'deliverymode': 'mean',
+            'is_on_time': 'mean'
+        }).reset_index()
+        
+        hourly_metrics[['deliverymode', 'is_on_time']] *= 100
+        return hourly_metrics
+
+    def weekly_trend_analysis(self):
+        """
+        Analyze trends by week
+        """
+        weekly_metrics = self.df.groupby('week_start').agg({
+            'orderid': 'nunique',
+            'is_on_time': 'mean',
+            'is_delivery_failure': 'mean',
+            'deliverymode': 'mean',
+            'is_return_flag': 'mean'
+        }).reset_index()
+        
+        # Calculate moving averages
+        rate_columns = ['is_on_time', 'is_delivery_failure', 'deliverymode', 'is_return_flag']
+        weekly_metrics[rate_columns] = weekly_metrics[rate_columns] * 100
+        weekly_metrics['orders_ma'] = weekly_metrics['orderid'].rolling(window=4).mean()
+        
+        return weekly_metrics
+
+    def plot_daily_patterns(self):
+        """
+        Create visualization for daily patterns
+        """
+        daily_metrics = self.daily_pattern_analysis()
+        
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 12))
+        
+        # Orders by day of week
+        sns.barplot(data=daily_metrics, x='day_of_week', y='orderid', ax=ax1)
+        ax1.set_title('Orders by Day of Week')
+        ax1.set_xlabel('Day of Week')
+        ax1.set_ylabel('Number of Orders')
+        ax1.tick_params(axis='x', rotation=45)
+        
+        # Performance metrics by day
+        metrics_to_plot = ['is_on_time', 'is_delivery_failure', 'deliverymode']
+        daily_metrics.plot(x='day_of_week', y=metrics_to_plot, kind='line', marker='o', ax=ax2)
+        ax2.set_title('Performance Metrics by Day of Week')
+        ax2.set_xlabel('Day of Week')
+        ax2.set_ylabel('Percentage')
+        ax2.tick_params(axis='x', rotation=45)
+        ax2.legend(['On-time Rate', 'Failure Rate', 'Express Delivery Rate'])
+        
+        plt.tight_layout()
+        return plt
+
+    def plot_hourly_patterns(self):
+        """
+        Create heatmap for hourly patterns
+        """
+        hourly_metrics = self.hourly_pattern_analysis()
+        pivot_data = hourly_metrics.pivot(
+            index='day_of_week', 
+            columns='hour_of_day', 
+            values='orderid'
+        )
+        
+        plt.figure(figsize=(15, 8))
+        sns.heatmap(pivot_data, cmap='YlOrRd', annot=True, fmt='.0f')
+        plt.title('Order Volume by Day and Hour')
+        plt.xlabel('Hour of Day')
+        plt.ylabel('Day of Week')
+        return plt
+
+    def plot_weekly_trends(self):
+        """
+        Create visualization for weekly trends
+        """
+        weekly_metrics = self.weekly_trend_analysis()
+        
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 12))
+        
+        # Weekly order volume with moving average
+        ax1.plot(weekly_metrics['week_start'], weekly_metrics['orderid'], label='Orders')
+        ax1.plot(weekly_metrics['week_start'], weekly_metrics['orders_ma'], 
+                label='4-Week Moving Average', linestyle='--')
+        ax1.set_title('Weekly Order Volume')
+        ax1.set_xlabel('Week')
+        ax1.set_ylabel('Number of Orders')
+        ax1.legend()
+        ax1.tick_params(axis='x', rotation=45)
+        
+        # Weekly performance metrics
+        metrics_to_plot = ['is_on_time', 'is_delivery_failure', 'deliverymode']
+        weekly_metrics.plot(x='week_start', y=metrics_to_plot, ax=ax2)
+        ax2.set_title('Weekly Performance Metrics')
+        ax2.set_xlabel('Week')
+        ax2.set_ylabel('Percentage')
+        ax2.tick_params(axis='x', rotation=45)
+        ax2.legend(['On-time Rate', 'Failure Rate', 'Express Delivery Rate'])
+        
+        plt.tight_layout()
+        return plt
+
+# Example usage:
+"""
+# Load your data
+df = pd.read_csv('your_data.csv')
+
+# Initialize analyzer
+analyzer = WeeklyPatternAnalyzer(df)
+
+# Get various analyses
+daily_patterns = analyzer.daily_pattern_analysis()
+hourly_patterns = analyzer.hourly_pattern_analysis()
+weekly_trends = analyzer.weekly_trend_analysis()
+
+# Create visualizations
+analyzer.plot_daily_patterns()
+analyzer.plot_hourly_patterns()
+analyzer.plot_weekly_trends()
+plt.show()
+"""
