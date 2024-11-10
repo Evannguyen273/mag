@@ -285,3 +285,178 @@ print(f"\nReturn Rate:")
 print(f"  Average: {df['return_rate'].mean():.1f}%")
 print(f"  Min: {df['return_rate'].min():.1f}%")
 print(f"  Max: {df['return_rate'].max():.1f}%")
+
+
+Analysis of Factors Affecting Performance:
+
+Seasonal Patterns:
+
+Winter (Dec-Feb):
+
+High return rates initially (holiday returns)
+Lower on-time performance
+Challenging weather conditions
+Holiday season peak volumes
+Reasons:
+Post-holiday returns surge
+Weather-related delivery challenges
+Peak shopping season strain
+
+Spring (Mar-May):
+
+Improved on-time rates
+Stable return rates
+Better overall performance
+Reasons:
+Better weather conditions
+Post-holiday normalization
+System improvements implemented
+
+Summer (Jun-Aug):
+
+Consistent performance
+Lower return rates
+Stable operations
+Reasons:
+Favorable weather
+Lower overall volumes
+Vacation season impact
+
+Fall (Sep-Oct):
+
+Declining on-time rates
+Very low return rates
+System changes visible
+Reasons:
+Pre-holiday preparation
+System updates/changes
+Volume increases
+
+
+Operational Factors:
+
+Initial Period (Late 2023):
+
+System implementation phase
+High return rates
+No on-time tracking
+Reasons:
+New system deployment
+Staff training period
+Process refinement
+
+Improvement Phase (Early 2024):
+
+Rapidly improving metrics
+Stabilizing operations
+Better tracking
+Reasons:
+Learning curve benefits
+Process optimization
+System maturity
+
+Peak Performance (Mid 2024):
+
+Optimal operations
+Balanced metrics
+Consistent delivery
+Reasons:
+Mature processes
+Trained staff
+Optimized routes
+
+
+Delivery Method Impact:
+
+Click & Collect:
+
+Higher short pick/zero pick rates
+Variable performance
+Reasons:
+Store inventory dependencies
+Staff availability
+Space constraints
+
+Home Delivery:
+
+More consistent performance
+Better on-time rates
+Reasons:
+Direct control over process
+Route optimization
+Professional delivery staff
+
+Locker Delivery:
+
+Technology dependent
+Good efficiency
+Reasons:
+Automated systems
+24/7 availability
+Limited capacity
+
+
+External Events Impact:
+
+Holiday Seasons:
+
+Increased volumes
+Higher return rates
+Performance pressure
+Reasons:
+Volume spikes
+Staffing challenges
+Customer behavior
+
+Weather Events:
+
+Performance variations
+Regional impacts
+Reasons:
+Delivery delays
+Safety considerations
+Route adjustments
+
+
+System/Process Evolution:
+
+Early Stage:
+
+No on-time tracking
+Basic metrics
+Reasons:
+System implementation
+Limited capabilities
+Learning phase
+
+Mature Stage:
+
+Comprehensive tracking
+Multiple metrics
+Reasons:
+System refinement
+Process maturity
+Better data collection
+
+
+Recommendations:
+
+Operational:
+
+Prepare for seasonal variations
+Maintain staffing flexibility
+Optimize based on delivery type
+
+System:
+
+Continue monitoring trends
+Implement predictive analytics
+Enhanced tracking capabilities
+
+Process:
+
+Standardize across delivery types
+Regular performance reviews
+Continuous improvement focus
+
+Would you like me to elaborate on any of these aspects or provide more specific analysis for certain periods or delivery methods?
