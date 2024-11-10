@@ -153,3 +153,35 @@ SELECT
     ROUND(COUNTIF(is_zero_pick = 'Y') * 100.0 / COUNT(*), 2) as zero_pick_rate,
     ROUND(COUNTIF(is_on_time = 'Y') * 100.0 / COUNT(*), 2) as on_time_rate
 FR
+
+
+-- 4. Weekly Performance by Warehouse
+SELECT 
+    warehouseid,
+    DATE_TRUNC(orderdate_timestamp, WEEK) as week_start,
+    COUNT(*) as total_items,
+    ROUND(COUNTIF(is_short_pick = 'Y') * 100.0 / COUNT(*), 2) as short_pick_rate,
+    ROUND(COUNTIF(is_zero_pick = 'Y') * 100.0 / COUNT(*), 2) as zero_pick_rate,
+    ROUND(COUNTIF(is_on_time = 'Y') * 100.0 / COUNT(*), 2) as on_time_rate,
+    -- Additional metrics
+    ROUND(AVG(consignment_deliverycost), 2) as avg_delivery_cost,
+    ROUND(COUNTIF(is_delivery_failure = 'Y') * 100.0 / COUNT(*), 2) as delivery_failure_rate,
+    ROUND(COUNTIF(is_return_flag = 'Y') * 100.0 / COUNT(*), 2) as return_rate,
+    ROUND(COUNTIF(deliverymode = '1') * 100.0 / COUNT(*), 2) as express_delivery_rate,
+    COUNT(DISTINCT orderid) as total_orders,
+    -- Efficiency metrics
+    ROUND(COUNT(*) / COUNT(DISTINCT orderid), 2) as items_per_order,
+    -- Time metrics
+    AVG(TIMESTAMP_DIFF(delivery_date, orderdate_timestamp, HOUR)) as avg_delivery_time_hours
+FROM `your_project.your_dataset.online_journey`
+WHERE 
+    orderdate_timestamp IS NOT NULL
+    AND warehouseid IS NOT NULL
+GROUP BY 
+    warehouseid,
+    week_start
+HAVING 
+    total_items >= 10  -- Filter out weeks with very low volume
+ORDER BY 
+    warehouseid,
+    week_start;
