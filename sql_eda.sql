@@ -460,3 +460,96 @@ Regular performance reviews
 Continuous improvement focus
 
 Would you like me to elaborate on any of these aspects or provide more specific analysis for certain periods or delivery methods?
+
+--------------------------------------------------
+Time series
+SELECT 
+    DATE(orderdate_timestamp) as order_day,
+    COUNT(DISTINCT orderid) as number_of_orders,
+    ROUND(SUM(product_price), 2) as daily_revenue,
+    ROUND(SUM(product_price) / COUNT(DISTINCT orderid), 2) as avg_order_value
+FROM tableA
+GROUP BY DATE(orderdate_timestamp)
+ORDER BY order_day;
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Read data (assuming the SQL output is saved as 'revenue_data.csv')
+df = pd.read_csv('revenue_data.csv')
+df['order_day'] = pd.to_datetime(df['order_day'])
+
+# Create figure and axis objects with larger size
+plt.figure(figsize=(15, 8))
+
+# Plot daily revenue
+plt.plot(df['order_day'], df['daily_revenue'], 
+         color='blue', linewidth=2, label='Daily Revenue')
+
+# Add moving average
+df['rolling_avg'] = df['daily_revenue'].rolling(window=7).mean()
+plt.plot(df['order_day'], df['rolling_avg'], 
+         color='red', linewidth=2, linestyle='--', 
+         label='7-day Moving Average')
+
+# Customize the plot
+plt.title('Daily Revenue Trend', fontsize=14, pad=20)
+plt.xlabel('Date', fontsize=12)
+plt.ylabel('Revenue', fontsize=12)
+plt.grid(True, linestyle='--', alpha=0.7)
+plt.legend()
+
+# Rotate x-axis labels
+plt.xticks(rotation=45)
+
+# Add annotations for key statistics
+avg_revenue = df['daily_revenue'].mean()
+max_revenue = df['daily_revenue'].max()
+max_revenue_date = df.loc[df['daily_revenue'].idxmax(), 'order_day']
+
+# Add text box with statistics
+stats_text = (f'Average Daily Revenue: {avg_revenue:,.2f}\n'
+             f'Max Daily Revenue: {max_revenue:,.2f}\n'
+             f'Peak Date: {max_revenue_date.strftime("%Y-%m-%d")}')
+             
+plt.text(0.02, 0.98, stats_text,
+         transform=plt.gca().transAxes,
+         verticalalignment='top',
+         bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+
+# Calculate and print monthly statistics
+df['month'] = df['order_day'].dt.to_period('M')
+monthly_stats = df.groupby('month').agg({
+    'daily_revenue': ['mean', 'sum', 'max'],
+    'number_of_orders': ['mean', 'sum']
+}).round(2)
+
+print("\nMonthly Statistics:")
+print(monthly_stats)
+
+# Adjust layout
+plt.tight_layout()
+
+# Show plot
+plt.show()
+
+# Additional Analysis
+print("\nOverall Statistics:")
+print(f"Total Revenue: {df['daily_revenue'].sum():,.2f}")
+print(f"Average Daily Revenue: {df['daily_revenue'].mean():,.2f}")
+print(f"Maximum Daily Revenue: {df['daily_revenue'].max():,.2f}")
+print(f"Minimum Daily Revenue: {df['daily_revenue'].min():,.2f}")
+print(f"Total Number of Orders: {df['number_of_orders'].sum():,}")
+print(f"Average Order Value: {(df['daily_revenue'].sum() / df['number_of_orders'].sum()):,.2f}")
+
+# Calculate day-of-week patterns
+df['day_of_week'] = df['order_day'].dt.day_name()
+dow_stats = df.groupby('day_of_week').agg({
+    'daily_revenue': 'mean',
+    'number_of_orders': 'mean'
+}).round(2)
+
+print("\nDay of Week Patterns:")
+print(dow_stats)
+
