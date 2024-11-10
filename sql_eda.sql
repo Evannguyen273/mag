@@ -94,3 +94,115 @@ df['delivery_day'] = pd.to_datetime(df['delivery_day'])
 for delivery_type in df['deliverytype'].unique():
     type_data = df[df['deliverytype'] == delivery_type].sort_values('delivery_day')
     plot_delivery_metrics(type_data, delivery_type)
+
+
+CLICK_AND_COLLECT:
+
+
+Characteristics:
+
+Lower volume delivery option
+Inconsistent on-time performance
+Higher operational issues (short picks/zero picks)
+
+
+Average daily volume: ~150-200 deliveries
+High variability in return rates (0-100%)
+Best suited for: Local store pickup with flexible timing
+
+
+CNC_STANDARD:
+
+
+Characteristics:
+
+Medium-high volume
+Stable return rates (~45-50%)
+Improving on-time performance over time
+
+
+Significant volume growth in later months
+Good balance of speed and reliability
+Best suited for: Standard click-and-collect orders
+
+
+HOME_DELIVERY_EXPRESS:
+
+
+Characteristics:
+
+Premium service with high on-time rates
+Lower volumes
+Variable return rates
+
+
+Higher operational costs (implied by low volumes)
+Best suited for: Time-sensitive deliveries
+
+
+HOME_DELIVERY_STANDARD:
+
+
+Characteristics:
+
+Highest volume service
+Most consistent performance
+Strong on-time rates (80%+)
+
+
+Very scalable operation
+Stable return rates
+Best suited for: Bulk of home delivery operations
+
+
+PUP_STANDARD (Pickup Standard):
+
+
+Characteristics:
+
+High volume
+Consistent performance
+Lower return rates than home delivery
+
+
+Good balance of efficiency and reliability
+Best suited for: Standard pickup services
+
+
+PUP_LOCKER Variants:
+
+
+Characteristics:
+
+Medium volume
+Technology-dependent service
+Good efficiency metrics
+
+
+Growing service with improving metrics
+Best suited for: Contactless pickup options
+
+Key Operational Insights:
+
+Volume Impact:
+
+
+Higher volumes generally correlate with better performance
+Return rates remain relatively stable across volumes
+Failure rates slightly increase with volume
+
+
+Seasonal Patterns:
+
+
+Most services show peak volumes in May-June
+Performance metrics generally stable across seasons
+Return rates show some seasonal variation
+
+
+Service Evolution:
+
+
+Newer services show improvement over time
+More established services have stable metrics
+Technology-dependent services show more variability
