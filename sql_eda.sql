@@ -206,3 +206,82 @@ Service Evolution:
 Newer services show improvement over time
 More established services have stable metrics
 Technology-dependent services show more variability
+
+
+
+-------------------------------------------
+overall
+SELECT 
+    DATE(orderdate_timestamp) as delivery_date,
+    ROUND(AVG(CASE WHEN is_on_time = 'Y' THEN 1.0 ELSE 0.0 END) * 100, 1) as ontime_rate,
+    ROUND(AVG(CASE WHEN is_delivery_failure = 'Y' THEN 1.0 ELSE 0.0 END) * 100, 1) as failure_rate,
+    ROUND(AVG(CASE WHEN is_return_flag = 'Y' THEN 1.0 ELSE 0.0 END) * 100, 1) as return_rate
+FROM tableA
+GROUP BY DATE(orderdate_timestamp)
+ORDER BY delivery_date;
+
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Assuming data is saved in 'delivery_trends.csv'
+df = pd.read_csv('delivery_trends.csv')
+df['delivery_date'] = pd.to_datetime(df['delivery_date'])
+
+# Create the plot
+plt.figure(figsize=(15, 8))
+
+# Plot all lines
+plt.plot(df['delivery_date'], df['ontime_rate'], 
+         label='On-time Rate', color='green', linewidth=2)
+plt.plot(df['delivery_date'], df['failure_rate'], 
+         label='Failure Rate', color='red', linewidth=2)
+plt.plot(df['delivery_date'], df['return_rate'], 
+         label='Return Rate', color='blue', linewidth=2)
+
+# Customize the plot
+plt.title('Overall Delivery Performance Trends', fontsize=14, pad=20)
+plt.xlabel('Date', fontsize=12)
+plt.ylabel('Rate (%)', fontsize=12)
+plt.grid(True, linestyle='--', alpha=0.7)
+plt.legend(fontsize=10)
+
+# Rotate x-axis labels for better readability
+plt.xticks(rotation=45)
+
+# Add some statistics annotations
+mean_ontime = df['ontime_rate'].mean()
+mean_failure = df['failure_rate'].mean()
+mean_return = df['return_rate'].mean()
+
+stats_text = f'Average Rates:\nOn-time: {mean_ontime:.1f}%\nFailure: {mean_failure:.1f}%\nReturn: {mean_return:.1f}%'
+plt.text(0.02, 0.98, stats_text, 
+         transform=plt.gca().transAxes, 
+         verticalalignment='top',
+         bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+
+# Adjust layout to prevent label cutoff
+plt.tight_layout()
+
+# Show the plot
+plt.show()
+
+# Print summary statistics
+print("\nSummary Statistics:")
+print(f"Date Range: {df['delivery_date'].min().strftime('%Y-%m-%d')} to {df['delivery_date'].max().strftime('%Y-%m-%d')}")
+print(f"\nOn-time Rate:")
+print(f"  Average: {df['ontime_rate'].mean():.1f}%")
+print(f"  Min: {df['ontime_rate'].min():.1f}%")
+print(f"  Max: {df['ontime_rate'].max():.1f}%")
+
+print(f"\nFailure Rate:")
+print(f"  Average: {df['failure_rate'].mean():.1f}%")
+print(f"  Min: {df['failure_rate'].min():.1f}%")
+print(f"  Max: {df['failure_rate'].max():.1f}%")
+
+print(f"\nReturn Rate:")
+print(f"  Average: {df['return_rate'].mean():.1f}%")
+print(f"  Min: {df['return_rate'].min():.1f}%")
+print(f"  Max: {df['return_rate'].max():.1f}%")
