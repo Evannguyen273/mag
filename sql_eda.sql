@@ -476,80 +476,86 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Read data (assuming the SQL output is saved as 'revenue_data.csv')
+# Read data
 df = pd.read_csv('revenue_data.csv')
 df['order_day'] = pd.to_datetime(df['order_day'])
 
-# Create figure and axis objects with larger size
-plt.figure(figsize=(15, 8))
+# Calculate weekly totals
+df['week'] = df['order_day'].dt.isocalendar().week
+df['year'] = df['order_day'].dt.isocalendar().year
+df['year_week'] = df['order_day'].dt.strftime('%Y-%U')
 
-# Plot daily revenue
-plt.plot(df['order_day'], df['daily_revenue'], 
-         color='blue', linewidth=2, label='Daily Revenue')
+weekly_revenue = df.groupby('year_week').agg({
+    'daily_revenue': 'sum',
+    'order_day': 'first'  # Keep first day of week for plotting
+}).reset_index()
 
-# Add moving average
+# Create figure with two y-axes
+fig, ax1 = plt.subplots(figsize=(15, 8))
+
+# Plot daily revenue on left y-axis
+ax1.plot(df['order_day'], df['daily_revenue'], 
+         color='blue', alpha=0.5, linewidth=1, 
+         label='Daily Revenue')
+
+# Add 7-day moving average
 df['rolling_avg'] = df['daily_revenue'].rolling(window=7).mean()
-plt.plot(df['order_day'], df['rolling_avg'], 
-         color='red', linewidth=2, linestyle='--', 
+ax1.plot(df['order_day'], df['rolling_avg'], 
+         color='green', linewidth=2, linestyle='--', 
          label='7-day Moving Average')
 
+# Create second y-axis for weekly revenue
+ax2 = ax1.twinx()
+ax2.plot(weekly_revenue['order_day'], weekly_revenue['daily_revenue'], 
+         color='red', linewidth=2, label='Weekly Total')
+
 # Customize the plot
-plt.title('Daily Revenue Trend', fontsize=14, pad=20)
-plt.xlabel('Date', fontsize=12)
-plt.ylabel('Revenue', fontsize=12)
-plt.grid(True, linestyle='--', alpha=0.7)
-plt.legend()
+ax1.set_xlabel('Date', fontsize=12)
+ax1.set_ylabel('Daily Revenue', fontsize=12)
+ax2.set_ylabel('Weekly Revenue', fontsize=12)
+plt.title('Revenue Trends - Daily vs Weekly', fontsize=14, pad=20)
+
+# Add grid
+ax1.grid(True, linestyle='--', alpha=0.7)
+
+# Combine legends
+lines1, labels1 = ax1.get_legend_handles_labels()
+lines2, labels2 = ax2.get_legend_handles_labels()
+ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
 
 # Rotate x-axis labels
 plt.xticks(rotation=45)
 
-# Add annotations for key statistics
-avg_revenue = df['daily_revenue'].mean()
-max_revenue = df['daily_revenue'].max()
-max_revenue_date = df.loc[df['daily_revenue'].idxmax(), 'order_day']
-
-# Add text box with statistics
-stats_text = (f'Average Daily Revenue: {avg_revenue:,.2f}\n'
-             f'Max Daily Revenue: {max_revenue:,.2f}\n'
-             f'Peak Date: {max_revenue_date.strftime("%Y-%m-%d")}')
-             
+# Add statistics annotations
+stats_text = (
+    f'Average Daily Revenue: {df["daily_revenue"].mean():,.2f}\n'
+    f'Average Weekly Revenue: {weekly_revenue["daily_revenue"].mean():,.2f}\n'
+    f'Peak Daily Revenue: {df["daily_revenue"].max():,.2f}\n'
+    f'Peak Weekly Revenue: {weekly_revenue["daily_revenue"].max():,.2f}'
+)
 plt.text(0.02, 0.98, stats_text,
-         transform=plt.gca().transAxes,
+         transform=ax1.transAxes,
          verticalalignment='top',
          bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
 
-# Calculate and print monthly statistics
-df['month'] = df['order_day'].dt.to_period('M')
-monthly_stats = df.groupby('month').agg({
-    'daily_revenue': ['mean', 'sum', 'max'],
-    'number_of_orders': ['mean', 'sum']
-}).round(2)
+# Print summary statistics
+print("\nDaily Revenue Statistics:")
+print(df['daily_revenue'].describe())
 
-print("\nMonthly Statistics:")
-print(monthly_stats)
+print("\nWeekly Revenue Statistics:")
+print(weekly_revenue['daily_revenue'].describe())
 
-# Adjust layout
+# Calculate week-over-week growth
+weekly_revenue['wow_growth'] = weekly_revenue['daily_revenue'].pct_change() * 100
+print("\nWeek-over-Week Growth Statistics:")
+print(weekly_revenue['wow_growth'].describe())
+
+# Find weeks with highest and lowest revenue
+print("\nTop 5 Highest Revenue Weeks:")
+print(weekly_revenue.nlargest(5, 'daily_revenue')[['year_week', 'daily_revenue']])
+
+print("\nTop 5 Lowest Revenue Weeks:")
+print(weekly_revenue.nsmallest(5, 'daily_revenue')[['year_week', 'daily_revenue']])
+
 plt.tight_layout()
-
-# Show plot
 plt.show()
-
-# Additional Analysis
-print("\nOverall Statistics:")
-print(f"Total Revenue: {df['daily_revenue'].sum():,.2f}")
-print(f"Average Daily Revenue: {df['daily_revenue'].mean():,.2f}")
-print(f"Maximum Daily Revenue: {df['daily_revenue'].max():,.2f}")
-print(f"Minimum Daily Revenue: {df['daily_revenue'].min():,.2f}")
-print(f"Total Number of Orders: {df['number_of_orders'].sum():,}")
-print(f"Average Order Value: {(df['daily_revenue'].sum() / df['number_of_orders'].sum()):,.2f}")
-
-# Calculate day-of-week patterns
-df['day_of_week'] = df['order_day'].dt.day_name()
-dow_stats = df.groupby('day_of_week').agg({
-    'daily_revenue': 'mean',
-    'number_of_orders': 'mean'
-}).round(2)
-
-print("\nDay of Week Patterns:")
-print(dow_stats)
-
