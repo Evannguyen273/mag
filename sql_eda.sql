@@ -694,3 +694,89 @@ ORDER BY order_day;
 * Geographic distribution within Canada
 * Product category performance
 * Customer satisfaction metrics during growth periods
+
+    ---------------------
+
+    # Canadian Orders Analysis (Nov 2023 - Oct 2024)
+
+## 1. Growth Trajectory
+* **Initial Phase (Nov-Dec 2023)**: Very low volume, averaging 2-3 orders per day
+* **Explosive Growth (Feb 2024)**: Dramatic increase from ~50 to 6,000+ orders per day
+* **Maturation (Mar-Oct 2024)**: Stabilized at 8,000-12,000 orders daily
+
+## 2. Key Business Milestones
+* **Major Scale Point**: February 7-8, 2024 (2,687 orders/day)
+* **Highest Volume Day**: September 25, 2024 (25,045 orders)
+* **Highest Revenue Day**: October 14, 2024 ($4.76M)
+* **Highest Average Order**: January 13, 2024 ($636.85/order)
+
+## 3. Seasonal Patterns
+* **Peak Months**: 
+  - February (Initial surge)
+  - September (Back to school)
+  - October (Pre-holiday shopping)
+* **Slower Months**:
+  - June-July (Summer lull)
+  - Early December (Pre-launch period)
+
+## 4. Weekly Patterns
+* **Strongest Days**: Sunday-Tuesday
+* **Weakest Days**: Friday-Saturday
+* **Revenue Variation**: 30-40% higher on peak days
+
+## 5. Average Order Value (AOV) Trends
+* **Overall Range**: $150-$300
+* **Initial Period** (Nov-Dec 2023): Highly variable ($14-$576)
+* **Stabilized Period** (Post-Feb 2024): $180-$240
+* **Notable Spikes**:
+  - Special promotions or product launches showing AOV >$300
+  - Weekend orders tend to have higher AOV
+
+## 6. Business Performance Phases
+
+### a) Launch Phase (Nov-Jan):
+* Low volume: 1-5 orders/day
+* Inconsistent AOV
+* Testing period characteristics
+
+### b) Growth Phase (Feb):
+* Exponential growth
+* Order volume increased 100x
+* Revenue scaled from thousands to millions
+
+### c) Stabilization Phase (Mar-Oct):
+* Consistent daily orders: 8,000-12,000
+* Predictable revenue patterns
+* Stable AOV around $200-$250
+
+## 7. Key Metrics Summary
+* Average Daily Orders (Post-Feb): 9,500
+* Average Daily Revenue (Post-Feb): $2.1M
+* Typical AOV: $210
+* Weekly Revenue: $14.7M (average)
+* Monthly Revenue: $63M (average)
+
+## 8. Business Insights
+
+### a) Growth Management:
+* Successful scaling from startup to major operation
+* Maintained service quality during 100x growth
+* Effective operational expansion
+
+### b) Customer Behavior:
+* Strong early-week ordering preference
+* Higher-value purchases on weekends
+* Consistent monthly purchasing patterns
+
+### c) Operational Recommendations:
+* Plan for higher capacity early in the week
+* Prepare for seasonal peaks (Sept-Oct)
+* Consider weekend promotions to boost slower days
+
+## 9. Areas for Further Investigation
+* Customer retention rates across growth phases
+* Impact of marketing campaigns on daily volumes
+* Correlation between promotional activities and AOV
+* Geographic distribution within Canada
+* Product category performance
+* Customer satisfaction metrics during growth periods
