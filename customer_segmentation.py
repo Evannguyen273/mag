@@ -1,11 +1,12 @@
--- Basic relationship query
+sqlCopy-- Updated hierarchy query
 SELECT DISTINCT
-    garment_group_name,
+    customer_group_name,
     division_name,
     section_name,
     index_group_name,
     index_description,
-    customer_group_name
+    product_group_name,
+    garment_group_name
 FROM tableA
 ORDER BY 
     customer_group_name,
@@ -13,16 +14,20 @@ ORDER BY
     section_name,
     index_group_name,
     index_description,
+    product_group_name,
     garment_group_name;
 
--- Count of items in each relationship
-WITH relationship_counts AS (
+
+------
+-- Count of combinations
+WITH hierarchy_counts AS (
     SELECT 
         customer_group_name,
         division_name,
         section_name,
         index_group_name,
         index_description,
+        product_group_name,
         garment_group_name,
         COUNT(*) as item_count
     FROM tableA
@@ -32,79 +37,118 @@ WITH relationship_counts AS (
         section_name,
         index_group_name,
         index_description,
+        product_group_name,
         garment_group_name
 )
 SELECT *
-FROM relationship_counts
+FROM hierarchy_counts
 ORDER BY item_count DESC;
 
 
 
 
---------------
-  import pandas as pd
+
+
+
+
+
+
+------------
+
+import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 
-# Read the data
-df = pd.read_csv('category_data.csv')
+def analyze_product_hierarchy(df):
+    print("Complete Product Hierarchy Analysis:")
+    print("\nUnique values at each level:")
+    print(f"Customer Groups: {df['customer_group_name'].nunique()}")
+    print(f"Divisions: {df['division_name'].nunique()}")
+    print(f"Sections: {df['section_name'].nunique()}")
+    print(f"Index Groups: {df['index_group_name'].nunique()}")
+    print(f"Index Descriptions: {df['index_description'].nunique()}")
+    print(f"Product Groups: {df['product_group_name'].nunique()}")
+    print(f"Garment Groups: {df['garment_group_name'].nunique()}")
 
-# Create a function to visualize the hierarchy
-def visualize_hierarchy():
-    # Create a directed graph
-    G = nx.DiGraph()
-    
-    # Add edges for each level of hierarchy
-    for _, row in df.iterrows():
-        # Customer Group -> Division
-        G.add_edge(row['customer_group_name'], row['division_name'])
-        # Division -> Section
-        G.add_edge(row['division_name'], row['section_name'])
-        # Section -> Index Group
-        G.add_edge(row['section_name'], row['index_group_name'])
-        # Index Group -> Index Description
-        G.add_edge(row['index_group_name'], row['index_description'])
-        # Index Description -> Garment Group
-        G.add_edge(row['index_description'], row['garment_group_name'])
+    # Analyze relationships
+    print("\nRelationship Analysis:")
+    for col1, col2 in [
+        ('customer_group_name', 'division_name'),
+        ('division_name', 'section_name'),
+        ('section_name', 'index_group_name'),
+        ('index_group_name', 'index_description'),
+        ('index_description', 'product_group_name'),
+        ('product_group_name', 'garment_group_name')
+    ]:
+        relationship = df.groupby(col1)[col2].nunique()
+        print(f"\n{col1} to {col2}:")
+        print(f"Average {col2}s per {col1}: {relationship.mean():.1f}")
+        print(f"Max {col2}s per {col1}: {relationship.max()}")
 
-    # Create the layout
-    pos = nx.spring_layout(G)
-    
-    # Draw the graph
+    # Show example hierarchy
+    print("\nExample Hierarchy Path:")
+    sample = df.iloc[0]
+    print(f"Customer Group: {sample['customer_group_name']}")
+    print(f"└─ Division: {sample['division_name']}")
+    print(f"   └─ Section: {sample['section_name']}")
+    print(f"      └─ Index Group: {sample['index_group_name']}")
+    print(f"         └─ Index Description: {sample['index_description']}")
+    print(f"            └─ Product Group: {sample['product_group_name']}")
+    print(f"               └─ Garment Group: {sample['garment_group_name']}")
+
+    # Create visualization
     plt.figure(figsize=(20, 12))
-    nx.draw(G, pos, with_labels=True, node_color='lightblue', 
-            node_size=2000, font_size=8, arrows=True)
-    plt.title("Product Category Hierarchy")
+    
+    # Create hierarchical layout
+    levels = [
+        df['customer_group_name'].unique(),
+        df['division_name'].unique(),
+        df['section_name'].unique(),
+        df['index_group_name'].unique(),
+        df['index_description'].unique(),
+        df['product_group_name'].unique(),
+        df['garment_group_name'].unique()
+    ]
+    
+    # Plot as vertical bars showing hierarchy levels
+    for i, level in enumerate(levels):
+        y = [i] * len(level)
+        x = range(len(level))
+        plt.scatter(x, y, s=100)
+        if i == 0:
+            plt.text(-0.5, i, 'Customer Groups', ha='right')
+        elif i == 1:
+            plt.text(-0.5, i, 'Divisions', ha='right')
+        elif i == 2:
+            plt.text(-0.5, i, 'Sections', ha='right')
+        elif i == 3:
+            plt.text(-0.5, i, 'Index Groups', ha='right')
+        elif i == 4:
+            plt.text(-0.5, i, 'Index Descriptions', ha='right')
+        elif i == 5:
+            plt.text(-0.5, i, 'Product Groups', ha='right')
+        else:
+            plt.text(-0.5, i, 'Garment Groups', ha='right')
+            
+    plt.title('Product Category Hierarchy Levels')
+    plt.xlabel('Number of Categories')
+    plt.ylabel('Hierarchy Level')
+    plt.grid(True, axis='y')
     plt.show()
 
-# Print hierarchy statistics
-print("Category Hierarchy Analysis:")
-print("\nUnique values at each level:")
-print(f"Customer Groups: {df['customer_group_name'].nunique()}")
-print(f"Divisions: {df['division_name'].nunique()}")
-print(f"Sections: {df['section_name'].nunique()}")
-print(f"Index Groups: {df['index_group_name'].nunique()}")
-print(f"Index Descriptions: {df['index_description'].nunique()}")
-print(f"Garment Groups: {df['garment_group_name'].nunique()}")
+    # Print common combinations
+    print("\nMost Common Category Combinations:")
+    combinations = df.groupby([
+        'customer_group_name',
+        'division_name',
+        'section_name',
+        'index_group_name',
+        'index_description',
+        'product_group_name',
+        'garment_group_name'
+    ]).size().reset_index(name='count')
+    
+    print(combinations.nlargest(10, 'count'))
 
-# Show the hierarchical structure
-print("\nHierarchy Structure:")
-for customer_group in df['customer_group_name'].unique():
-    print(f"\nCustomer Group: {customer_group}")
-    divisions = df[df['customer_group_name'] == customer_group]['division_name'].unique()
-    for division in divisions:
-        print(f"  └─ Division: {division}")
-        sections = df[df['division_name'] == division]['section_name'].unique()
-        for section in sections:
-            print(f"     └─ Section: {section}")
-            index_groups = df[df['section_name'] == section]['index_group_name'].unique()
-            for index_group in index_groups[:3]:  # Limit to first 3 for brevity
-                print(f"        └─ Index Group: {index_group}")
-                index_descs = df[df['index_group_name'] == index_group]['index_description'].unique()
-                for index_desc in index_descs[:2]:  # Limit to first 2 for brevity
-                    print(f"           └─ Index Description: {index_desc}")
-                    garment_groups = df[df['index_description'] == index_desc]['garment_group_name'].unique()
-                    for garment_group in garment_groups[:2]:  # Limit to first 2 for brevity
-                        print(f"              └─ Garment Group: {garment_group}")
-
-visualize_hierarchy()
+# Assuming df is your DataFrame with the category data
+# analyze_product_hierarchy(df)
