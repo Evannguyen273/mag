@@ -130,79 +130,109 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_revenue_analysis(df, country_name, title_prefix='Revenue Analysis'):
-    # Filter data for the specified country
-    country_df = df[df['country'] == country_name]
+def calculate_percentages(df, country_name, n_top=100):
+    """
+    Calculate revenue percentages based on total country revenue before filtering top N
+    """
+    # First get total revenue for the entire country
+    country_total = df[df['country'] == country_name]['total_revenue'].sum()
     
-    if country_df.empty:
-        print(f"No data available for {country_name}")
-        return
-
-    # Calculate total revenue and percentages for the selected country
-    total_revenue = country_df['total_revenue'].sum()
-    country_df['revenue_percentage'] = (country_df['total_revenue'] / total_revenue) * 100
+    # Then get top N towns
+    country_df = df[df['country'] == country_name].sort_values(by='total_revenue', ascending=False).head(n_top)
+    
+    # Calculate percentages based on total country revenue
+    country_df['revenue_percentage'] = (country_df['total_revenue'] / country_total) * 100
     country_df = country_df.sort_values('revenue_percentage', ascending=True)
     country_df['cumulative_percentage'] = country_df['revenue_percentage'].cumsum()
+    
+    return country_df, country_total
 
-    # Create figure with subplots
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(15, 15), height_ratios=[2, 1, 1])
-    fig.suptitle(f"{title_prefix} for {country_name}", fontsize=16, y=0.95)
-
-    # 1. Horizontal Bar Chart of Revenue Percentages
+def plot_revenue_distribution_by_town(country_df, country_name, n_top, total_percentage):
+    fig, ax1 = plt.subplots(figsize=(15, 5))
     bars = ax1.barh(country_df['town'], country_df['revenue_percentage'], color='skyblue')
     ax1.set_xlabel('Revenue Percentage (%)')
     ax1.set_ylabel('Town')
-    ax1.set_title('Revenue Distribution by Town')
+    ax1.set_title(f'Revenue Distribution by top {n_top} Towns in {country_name}\nShowing {total_percentage:.1f}% of total country revenue')
 
     for bar in bars:
         width = bar.get_width()
         ax1.text(width, bar.get_y() + bar.get_height()/2,
-                 f'{width:.1f}%', va='center', ha='left', fontsize=10)
+                f'{width:.1f}%', va='center', ha='left', fontsize=10)
 
-    # 2. Cumulative Revenue Concentration Curve
+    plt.tight_layout()
+    plt.show()
+
+def plot_revenue_concentration_curve(country_df, country_name, n_top, total_percentage):
+    fig, ax2 = plt.subplots(figsize=(15, 5))
     ax2.plot(range(1, len(country_df) + 1), country_df['cumulative_percentage'],
              marker='o', color='red', linewidth=2)
     ax2.set_xlabel('Number of Towns')
     ax2.set_ylabel('Cumulative Revenue %')
-    ax2.set_title('Revenue Concentration (Pareto Analysis)')
+    ax2.set_title(f'Revenue Concentration (Pareto Analysis) for top {n_top} Towns in {country_name}\nShowing {total_percentage:.1f}% of total country revenue')
     ax2.grid(True, linestyle='--', alpha=0.7)
 
+    # Add reference lines and make them span the full range of towns
     ax2.axhline(y=80, color='green', linestyle='--', alpha=0.5, label='80% Revenue')
     ax2.axhline(y=50, color='blue', linestyle='--', alpha=0.5, label='50% Revenue')
     ax2.legend()
 
     for i, row in country_df.iterrows():
         ax2.annotate(f'{row["cumulative_percentage"]:.1f}%',
-                     (i + 1, row['cumulative_percentage']),
-                     xytext=(5, 5), textcoords='offset points', fontsize=8)
-
-    # 3. Scatter Plot of Orders vs Revenue Percentage
-    ax3.scatter(country_df['total_orders'], country_df['revenue_percentage'],
-                alpha=0.6, c='purple', s=100)
-    ax3.set_xlabel('Number of Orders')
-    ax3.set_ylabel('Revenue Percentage (%)')
-    ax3.set_title('Orders vs Revenue Percentage')
-    ax3.grid(True, linestyle='--', alpha=0.7)
-
-    for i, row in country_df.iterrows():
-        ax3.annotate(row['town'],
-                     (row['total_orders'], row['revenue_percentage']),
-                     xytext=(5, 5), textcoords='offset points', fontsize=8)
-
-    # Add statistics textbox
-    stats_text = (
-        f'Number of Towns: {len(country_df)}\n'
-        f'Top Town: {country_df.iloc[-1]["town"]} ({country_df.iloc[-1]["revenue_percentage"]:.1f}%)\n'
-        f'Median Revenue %: {country_df["revenue_percentage"].median():.1f}%\n'
-        f'Top 20% Towns Revenue: {country_df.nlargest(2, "revenue_percentage")["revenue_percentage"].sum():.1f}%'
-    )
-
-    plt.figtext(0.02, 0.02, stats_text,
-                bbox=dict(facecolor='white', alpha=0.8, edgecolor='gray'),
-                fontsize=10)
+                    (i + 1, row['cumulative_percentage']),
+                    xytext=(5, 5), textcoords='offset points', fontsize=8)
 
     plt.tight_layout()
     plt.show()
 
-# Call the function with your dataframe and a specific country name
-plot_revenue_analysis(df=country_revenue_df, country_name='Sweden', title_prefix='Revenue Analysis')
+def plot_orders_vs_revenue_percentage(country_df, country_name, n_top, total_percentage):
+    fig, ax3 = plt.subplots(figsize=(15, 5))
+    scatter = ax3.scatter(country_df['total_orders'], country_df['revenue_percentage'],
+                         alpha=0.6, c='purple', s=100)
+    ax3.set_xlabel('Number of Orders')
+    ax3.set_ylabel('Revenue Percentage (%)')
+    ax3.set_title(f'Orders vs Revenue Percentage for top {n_top} Towns in {country_name}\nShowing {total_percentage:.1f}% of total country revenue')
+    ax3.grid(True, linestyle='--', alpha=0.7)
+
+    for i, row in country_df.iterrows():
+        ax3.annotate(row['town'],
+                    (row['total_orders'], row['revenue_percentage']),
+                    xytext=(5, 5), textcoords='offset points', fontsize=8)
+
+    plt.tight_layout()
+    plt.show()
+
+def plot_revenue_analysis(df, country_name, title_prefix='Revenue Analysis', n_top=100):
+    if country_name not in df['country'].unique():
+        print(f"No data available for {country_name}")
+        return
+
+    # Calculate percentages based on total country revenue
+    country_df, country_total = calculate_percentages(df, country_name, n_top)
+    
+    # Calculate total percentage of revenue represented by top N towns
+    total_percentage = country_df['revenue_percentage'].sum()
+    
+    # Display the dataframe
+    print(f"\nAnalyzing top {n_top} towns out of {len(df[df['country'] == country_name])} total towns")
+    print(f"These towns represent {total_percentage:.1f}% of total {country_name} revenue")
+    display(country_df)
+
+    # Plot each of the three charts with the total percentage information
+    plot_revenue_distribution_by_town(country_df, country_name, n_top, total_percentage)
+    plot_revenue_concentration_curve(country_df, country_name, n_top, total_percentage)
+    plot_orders_vs_revenue_percentage(country_df, country_name, n_top, total_percentage)
+
+    # Print detailed statistics
+    print("\nDetailed Statistics:")
+    print(f"Total Country Revenue: ${country_total:,.2f}")
+    print(f"Top {n_top} Towns Revenue: ${country_df['total_revenue'].sum():,.2f}")
+    print(f"Percentage of Total Revenue: {total_percentage:.1f}%")
+    print(f"\nPareto Analysis:")
+    for p in [10, 20, 50, 80]:
+        n_towns = int(len(country_df) * (p/100))
+        if n_towns > 0:
+            revenue_p = country_df.nlargest(n_towns, 'revenue_percentage')['revenue_percentage'].sum()
+            print(f"Top {p}% of towns ({n_towns} towns) account for {revenue_p:.1f}% of analyzed revenue")
+
+# Usage example:
+# plot_revenue_analysis(df=town_overall_df, country_name='SE', n_top=100)
