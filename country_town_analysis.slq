@@ -24,86 +24,102 @@ JOIN country_totals c ON t.country = c.country
 ORDER BY t.country, t.total_revenue DESC;
 ------------------------------------
 
-def plot_country_revenue(df, town_column='town', graph_title='Revenue Analysis'):
-    """
-    Plot revenue analysis graphs
-    
-    Parameters:
-    df: DataFrame containing the revenue data
-    town_column: Name of the column containing town names (default='town')
-    graph_title: Title for the overall graph (default='Revenue Analysis')
-    
-    Required columns in df:
-    - town_column (specified in parameters)
-    - revenue_percentage
-    - total_orders
-    - total_revenue
-    """
-    # Sort by revenue
-    data_sorted = df.sort_values('revenue_percentage', ascending=True)
-    
-    # Create figure with multiple subplots
-    fig = plt.figure(figsize=(15, 15))
-    gs = fig.add_gridspec(3, 1, height_ratios=[2, 1, 1])
-    
-    # 1. Revenue percentage horizontal bar chart
-    ax1 = fig.add_subplot(gs[0])
-    bars = ax1.barh(data_sorted[town_column], data_sorted['revenue_percentage'])
-    ax1.set_xlabel('Revenue Percentage (%)')
-    ax1.set_ylabel(town_column.title())
-    ax1.set_title(f'Revenue Distribution by {town_column.title()} - {graph_title}')
-    
-    # Add percentage labels
-    for bar in bars:
-        width = bar.get_width()
-        ax1.text(width, bar.get_y() + bar.get_height()/2, 
-                f'{width:.1f}%', va='center')
+def plot_country_revenue(data, country_name):
+        # Sort by revenue
+        data_sorted = data.sort_values('revenue_percentage', ascending=True)
+        
+        # Create figure with multiple subplots
+        fig = plt.figure(figsize=(15, 15))
+        gs = fig.add_gridspec(3, 1, height_ratios=[2, 1, 1])
+        
+        # Revenue percentage horizontal bar chart
+        ax1 = fig.add_subplot(gs[0])
+        bars = ax1.barh(data_sorted['town'], data_sorted['revenue_percentage'])
+        ax1.set_xlabel('Revenue Percentage (%)')
+        ax1.set_ylabel('Town')
+        ax1.set_title(f'Revenue Distribution by Town - {country_name}')
+        
+        # Add percentage labels
+        for bar in bars:
+            width = bar.get_width()
+            ax1.text(width, bar.get_y() + bar.get_height()/2, 
+                    f'{width:.1f}%', va='center')
 
-    # 2. Cumulative percentage plot
-    ax2 = fig.add_subplot(gs[1])
-    data_sorted['cumulative_percentage'] = data_sorted['revenue_percentage'].cumsum()
-    ax2.plot(range(len(data_sorted)), data_sorted['cumulative_percentage'], 
-            marker='o', color='red')
-    ax2.set_xlabel(f'Number of {town_column.title()}s')
-    ax2.set_ylabel('Cumulative Revenue %')
-    ax2.set_title('Revenue Concentration')
-    ax2.grid(True)
-    
-    # Add reference lines and legend
-    ax2.axhline(y=80, color='g', linestyle='--', alpha=0.5, label='80% Revenue')
-    ax2.axhline(y=50, color='b', linestyle='--', alpha=0.5, label='50% Revenue')
-    ax2.legend()
+        # Cumulative percentage plot
+        ax2 = fig.add_subplot(gs[1])
+        data_sorted['cumulative_percentage'] = data_sorted['revenue_percentage'].cumsum()
+        ax2.plot(range(len(data_sorted)), data_sorted['cumulative_percentage'], 
+                marker='o', color='red')
+        ax2.set_xlabel('Number of Towns')
+        ax2.set_ylabel('Cumulative Revenue %')
+        ax2.set_title('Revenue Concentration')
+        ax2.grid(True)
+        
+        # Add reference lines at 80% and 50%
+        ax2.axhline(y=80, color='g', linestyle='--', alpha=0.5)
+        ax2.axhline(y=50, color='b', linestyle='--', alpha=0.5)
 
-    # 3. Scatter plot of orders vs revenue percentage
-    ax3 = fig.add_subplot(gs[2])
-    scatter = ax3.scatter(data_sorted['total_orders'], 
-                         data_sorted['revenue_percentage'],
-                         alpha=0.6)
-    ax3.set_xlabel('Number of Orders')
-    ax3.set_ylabel('Revenue Percentage (%)')
-    ax3.set_title('Orders vs Revenue Percentage')
-    ax3.grid(True, linestyle='--', alpha=0.7)
-    
-    # Add town labels to top 5 points
-    top_5 = data_sorted.nlargest(5, 'revenue_percentage')
-    for idx, row in top_5.iterrows():
-        ax3.annotate(row[town_column], 
-                    (row['total_orders'], row['revenue_percentage']),
-                    xytext=(5, 5), textcoords='offset points')
+        # Scatter plot of orders vs revenue percentage
+        ax3 = fig.add_subplot(gs[2])
+        scatter = ax3.scatter(data_sorted['total_orders'], 
+                            data_sorted['revenue_percentage'],
+                            alpha=0.6)
+        ax3.set_xlabel('Number of Orders')
+        ax3.set_ylabel('Revenue Percentage (%)')
+        ax3.set_title('Orders vs Revenue Percentage')
+        
+        # Add town labels to top 5 points
+        top_5 = data_sorted.nlargest(5, 'revenue_percentage')
+        for idx, row in top_5.iterrows():
+            ax3.annotate(row['town'], 
+                        (row['total_orders'], row['revenue_percentage']),
+                        xytext=(5, 5), textcoords='offset points')
 
-    # Add statistics
-    stats_text = (
-        f'Total Revenue: ${data_sorted["total_revenue"].sum():,.2f}\n'
-        f'Number of {town_column.title()}s: {len(data_sorted):,}\n'
-        f'Top 3 {town_column.title()}s: '
-        f'{", ".join(data_sorted.nlargest(3, "revenue_percentage")[town_column].values)}\n'
-        f'Top 20% {town_column.title()}s Revenue: '
-        f'{data_sorted.nlargest(len(data_sorted)//5, "revenue_percentage")["revenue_percentage"].sum():.1f}%\n'
-        f'Median {town_column.title()} Revenue: {data_sorted["revenue_percentage"].median():.2f}%'
-    )
-    
-    plt.figtext(0.02, 0.02, stats_text, 
-                bbox=dict(facecolor='white', alpha=0.8))
-    
-    plt.tight_layout()
-    return fig
+        # Add statistics
+        stats_text = (
+            f'Total Revenue: ${data["total_revenue"].sum():,.2f}\n'
+            f'Number of Towns: {len(data):,}\n'
+            f'Top 3 Towns: {", ".join(data_sorted.nlargest(3, "revenue_percentage")["town"].values)}\n'
+            f'Top 20% Towns Revenue: {data_sorted.nlargest(len(data)//5, "revenue_percentage")["revenue_percentage"].sum():.1f}%\n'
+            f'Median Town Revenue: {data_sorted["revenue_percentage"].median():.2f}%'
+        )
+        
+        plt.figtext(0.02, 0.02, stats_text, 
+                    bbox=dict(facecolor='white', alpha=0.8))
+        
+        plt.tight_layout()
+        return fig
+
+    # Analyze and plot for each country
+    for country in revenue_by_town['country'].unique():
+        country_data = revenue_by_town[revenue_by_town['country'] == country].copy()
+        
+        # Sort towns by revenue percentage
+        country_data = country_data.sort_values('revenue_percentage', ascending=False)
+        
+        # Create visualization
+        fig = plot_country_revenue(country_data, country)
+        plt.show()
+        
+        # Print detailed statistics
+        print(f"\nDetailed Statistics for {country}")
+        print("=" * 80)
+        
+        print("\nTop 10 Towns by Revenue:")
+        print(country_data.head(10)[['town', 'total_revenue', 'revenue_percentage', 
+                                   'total_orders', 'avg_order_value']]
+              .to_string(index=False))
+        
+        # Calculate concentration metrics
+        percentiles = [20, 50, 80]
+        n_towns = len(country_data)
+        
+        print("\nRevenue Concentration:")
+        for p in percentiles:
+            n_towns_p = int(n_towns * p/100)
+            revenue_p = country_data.head(n_towns_p)['revenue_percentage'].sum()
+            print(f"Top {p}% of towns ({n_towns_p} towns) account for {revenue_p:.1f}% of revenue")
+        
+        print("\n" + "=" * 80)
+
+    return revenue_by_town
