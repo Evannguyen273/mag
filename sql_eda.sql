@@ -559,3 +559,24 @@ print(weekly_revenue.nsmallest(5, 'daily_revenue')[['year_week', 'daily_revenue'
 
 plt.tight_layout()
 plt.show()
+
+
+
+==============
+SELECT 
+    DATE(orderdate_timestamp) as order_day,
+    EXTRACT(ISOYEAR FROM orderdate_timestamp) as iso_year,
+    EXTRACT(WEEK FROM orderdate_timestamp) as iso_week,
+    CONCAT(EXTRACT(ISOYEAR FROM orderdate_timestamp), '-', 
+           LPAD(EXTRACT(WEEK FROM orderdate_timestamp)::text, 2, '0')) as iso_year_week,
+    SUM(product_price) as daily_revenue,
+    SUM(SUM(product_price)) OVER (
+        PARTITION BY EXTRACT(ISOYEAR FROM orderdate_timestamp), 
+                     EXTRACT(WEEK FROM orderdate_timestamp)
+    ) as weekly_revenue
+FROM tableA
+GROUP BY 
+    DATE(orderdate_timestamp),
+    EXTRACT(ISOYEAR FROM orderdate_timestamp),
+    EXTRACT(WEEK FROM orderdate_timestamp)
+ORDER BY order_day;
