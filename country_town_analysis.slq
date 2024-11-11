@@ -167,5 +167,42 @@ def plot_revenue_analysis(df, country_name, title_prefix='Revenue Analysis'):
     ax2.set_title('Revenue Concentration (Pareto Analysis)')
     ax2.grid(True, linestyle='--', alpha=0.7)
 
-    ax2.axhline(y=80, color='green', linestyle='--', alpha=0.
+    ax2.axhline(y=80, color='green', linestyle='--', alpha=0.5, label='80% Revenue')
+    ax2.axhline(y=50, color='blue', linestyle='--', alpha=0.5, label='50% Revenue')
+    ax2.legend()
 
+    for i, row in country_df.iterrows():
+        ax2.annotate(f'{row["cumulative_percentage"]:.1f}%',
+                     (i + 1, row['cumulative_percentage']),
+                     xytext=(5, 5), textcoords='offset points', fontsize=8)
+
+    # 3. Scatter Plot of Orders vs Revenue Percentage
+    ax3.scatter(country_df['total_orders'], country_df['revenue_percentage'],
+                alpha=0.6, c='purple', s=100)
+    ax3.set_xlabel('Number of Orders')
+    ax3.set_ylabel('Revenue Percentage (%)')
+    ax3.set_title('Orders vs Revenue Percentage')
+    ax3.grid(True, linestyle='--', alpha=0.7)
+
+    for i, row in country_df.iterrows():
+        ax3.annotate(row['town'],
+                     (row['total_orders'], row['revenue_percentage']),
+                     xytext=(5, 5), textcoords='offset points', fontsize=8)
+
+    # Add statistics textbox
+    stats_text = (
+        f'Number of Towns: {len(country_df)}\n'
+        f'Top Town: {country_df.iloc[-1]["town"]} ({country_df.iloc[-1]["revenue_percentage"]:.1f}%)\n'
+        f'Median Revenue %: {country_df["revenue_percentage"].median():.1f}%\n'
+        f'Top 20% Towns Revenue: {country_df.nlargest(2, "revenue_percentage")["revenue_percentage"].sum():.1f}%'
+    )
+
+    plt.figtext(0.02, 0.02, stats_text,
+                bbox=dict(facecolor='white', alpha=0.8, edgecolor='gray'),
+                fontsize=10)
+
+    plt.tight_layout()
+    plt.show()
+
+# Call the function with your dataframe and a specific country name
+plot_revenue_analysis(df=country_revenue_df, country_name='Sweden', title_prefix='Revenue Analysis')
