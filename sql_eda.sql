@@ -580,3 +580,32 @@ GROUP BY
     EXTRACT(ISOYEAR FROM orderdate_timestamp),
     EXTRACT(WEEK FROM orderdate_timestamp)
 ORDER BY order_day;
+
+
+# Revenue Surge Analysis
+
+## Major Revenue Events
+
+### 1. Late January 2024 Surge (Week 4)
+* January 28: $44.7M
+* January 29: $54.2M (highest daily revenue)
+* The entire week (Week 4) generated $148.6M, which was unprecedented at that point
+* This represented a massive jump from the previous weeks where daily revenues were typically under $1M
+
+### 2. September 25, 2024 Spike
+* A single-day surge of $211M
+* This was the highest single-day revenue in the entire dataset
+* Week 38 totaled $338.3M, largely due to this spike
+* The days before and after this spike showed normal revenue patterns ($15-24M per day)
+
+### 3. October 27, 2024 Surge
+* A significant spike of $136.4M
+* This was followed by a sharp return to normal levels
+* Week 43 totaled $192.1M, mostly due to this single day
+
+## Notable Patterns
+* These surges appear to be isolated events rather than gradual increases
+* After each surge, revenue typically returns to baseline levels
+* The baseline revenue increased significantly after the January surge, moving from thousands to millions per day
+* The surge events might represent special sales events, product launches, or major business developments
+* There's also a pattern of elevated weekly revenues when major retailers typically have sales events (like Black Friday, Cyber Monday, etc.)
