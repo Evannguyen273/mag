@@ -697,86 +697,101 @@ ORDER BY order_day;
 
     ---------------------
 
-    # Canadian Orders Analysis (Nov 2023 - Oct 2024)
+    # Swedish Orders Analysis (Nov 2023 - Oct 2024)
 
 ## 1. Growth Trajectory
-* **Initial Phase (Nov-Dec 2023)**: Very low volume, averaging 2-3 orders per day
-* **Explosive Growth (Feb 2024)**: Dramatic increase from ~50 to 6,000+ orders per day
-* **Maturation (Mar-Oct 2024)**: Stabilized at 8,000-12,000 orders daily
+* **Initial Phase (Nov-Dec 2023)**: Started with minimal volume, 1-8 orders per day
+* **First Significant Growth (Mid-Dec 2023)**: Reached 20+ orders/day
+* **Major Scale-Up (Jan 2024)**: Dramatic increase culminating in 26,230 orders on Jan 29
+* **Stabilization Phase**: Maintained high volume with notable spikes throughout the year
 
 ## 2. Key Business Milestones
-* **Major Scale Point**: February 7-8, 2024 (2,687 orders/day)
-* **Highest Volume Day**: September 25, 2024 (25,045 orders)
-* **Highest Revenue Day**: October 14, 2024 ($4.76M)
-* **Highest Average Order**: January 13, 2024 ($636.85/order)
+* **Highest Volume Day**: September 25, 2024 (81,728 orders)
+* **Highest Revenue Day**: September 25, 2024 (206.1M SEK)
+* **Highest Average Order**: January 28, 2024 (2,361.85 SEK)
+* **Peak Week**: Late October 2024 (133.6M SEK on October 27)
 
 ## 3. Seasonal Patterns
-* **Peak Months**: 
-  - February (Initial surge)
-  - September (Back to school)
-  - October (Pre-holiday shopping)
-* **Slower Months**:
-  - June-July (Summer lull)
-  - Early December (Pre-launch period)
+* **Peak Periods**:
+  - Late January (Initial surge)
+  - Mid-March (Spring season)
+  - Late May (Early summer)
+  - Late September (Fall season)
+  - Late October (Pre-holiday)
+* **Lower Volume Periods**:
+  - Early July (Summer holiday)
+  - Early August (Holiday season)
+  - Early December (Pre-launch)
 
-## 4. Weekly Patterns
-* **Strongest Days**: Sunday-Tuesday
-* **Weakest Days**: Friday-Saturday
-* **Revenue Variation**: 30-40% higher on peak days
-
-## 5. Average Order Value (AOV) Trends
-* **Overall Range**: $150-$300
-* **Initial Period** (Nov-Dec 2023): Highly variable ($14-$576)
-* **Stabilized Period** (Post-Feb 2024): $180-$240
+## 4. Daily Order Value Analysis
+* **Initial AOV** (Nov-Dec 2023): Highly variable (500-2,691 SEK)
+* **Stabilized AOV** (Post-Feb 2024): 1,200-1,600 SEK
 * **Notable Spikes**:
-  - Special promotions or product launches showing AOV >$300
-  - Weekend orders tend to have higher AOV
+  - September 25: 2,522 SEK AOV
+  - May 26: 2,395 SEK AOV
+  - January 28-29: >2,000 SEK AOV
 
-## 6. Business Performance Phases
+## 5. Business Performance Phases
 
-### a) Launch Phase (Nov-Jan):
-* Low volume: 1-5 orders/day
-* Inconsistent AOV
-* Testing period characteristics
+### a) Launch Phase (Nov 2023 - Early Jan 2024)
+* Daily orders: 1-20
+* Inconsistent order values
+* Testing market response
 
-### b) Growth Phase (Feb):
-* Exponential growth
-* Order volume increased 100x
-* Revenue scaled from thousands to millions
+### b) Explosive Growth (Late Jan - Feb 2024)
+* Peak of 26,230 orders on January 29
+* Dramatic revenue increase
+* Strong average order values
 
-### c) Stabilization Phase (Mar-Oct):
-* Consistent daily orders: 8,000-12,000
-* Predictable revenue patterns
-* Stable AOV around $200-$250
+### c) Maturation Phase (Mar - Oct 2024)
+* Regular daily orders: 10,000-15,000
+* Periodic promotional spikes
+* More predictable patterns with seasonal variations
 
-## 7. Key Metrics Summary
-* Average Daily Orders (Post-Feb): 9,500
-* Average Daily Revenue (Post-Feb): $2.1M
-* Typical AOV: $210
-* Weekly Revenue: $14.7M (average)
-* Monthly Revenue: $63M (average)
+## 6. Key Metrics
+* **Average Daily Orders** (Post-Feb): ~13,000
+* **Typical Daily Revenue**: 15-25M SEK
+* **Standard AOV**: ~1,400 SEK
+* **Peak Day Performance**: 206.1M SEK (Sept 25)
+* **Baseline Daily Orders**: 8,000-12,000
 
-## 8. Business Insights
+## 7. Operational Insights
 
-### a) Growth Management:
-* Successful scaling from startup to major operation
-* Maintained service quality during 100x growth
-* Effective operational expansion
+### a) Volume Management
+* Successful handling of 80x volume increase
+* Maintained consistent service during growth
+* Effective scaling of operations
 
-### b) Customer Behavior:
-* Strong early-week ordering preference
-* Higher-value purchases on weekends
-* Consistent monthly purchasing patterns
+### b) Order Patterns
+* Higher volumes early in the week
+* Lower volumes on weekends
+* Major spikes correlating with promotional events
 
-### c) Operational Recommendations:
-* Plan for higher capacity early in the week
-* Prepare for seasonal peaks (Sept-Oct)
-* Consider weekend promotions to boost slower days
+### c) Strategic Observations
+* Strong market acceptance in Sweden
+* Effective promotional strategy driving peaks
+* Successful management of seasonal variations
+
+## 8. Recommendations
+1. **Capacity Planning**:
+   * Prepare for 80,000+ order days during peak seasons
+   * Maintain flexibility for 3-4x normal volume during promotions
+
+2. **Seasonal Strategy**:
+   * Strengthen summer period performance
+   * Plan for major promotional events in September-October
+   * Build on successful spring season momentum
+
+3. **Order Value Optimization**:
+   * Investigate high AOV periods for replication
+   * Focus on maintaining AOV during high-volume events
+   * Consider targeted promotions during lower-volume periods
 
 ## 9. Areas for Further Investigation
-* Customer retention rates across growth phases
-* Impact of marketing campaigns on daily volumes
-* Correlation between promotional activities and AOV
-* Geographic distribution within Canada
-* Product category performance
-* Customer satisfaction metrics during growth periods
+* Customer retention metrics across growth phases
+* Impact of Swedish market preferences on AOV
+* Effectiveness of promotional strategies
+* Regional distribution within Sweden
+* Cart composition during high AOV periods
+* Correlation between volume and AOV
+* Impact of Swedish holidays on ordering patterns
