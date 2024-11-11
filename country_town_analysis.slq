@@ -1,0 +1,109 @@
+WITH town_revenue AS (
+    SELECT 
+        country,
+        town,
+        ROUND(SUM(product_price), 2) as total_revenue,
+        COUNT(DISTINCT orderid) as total_orders,
+        COUNT(*) as total_items
+    FROM tableA
+    GROUP BY country, town
+),
+country_totals AS (
+    SELECT 
+        country,
+        SUM(total_revenue) as country_total_revenue
+    FROM town_revenue
+    GROUP BY country
+)
+SELECT 
+    t.*,
+    ROUND(t.total_revenue/t.total_orders, 2) as avg_order_value,
+    ROUND(t.total_revenue * 100.0 / c.country_total_revenue, 2) as revenue_percentage
+FROM town_revenue t
+JOIN country_totals c ON t.country = c.country
+ORDER BY t.country, t.total_revenue DESC;
+------------------------------------
+
+def plot_country_revenue(df, town_column='town', graph_title='Revenue Analysis'):
+    """
+    Plot revenue analysis graphs
+    
+    Parameters:
+    df: DataFrame containing the revenue data
+    town_column: Name of the column containing town names (default='town')
+    graph_title: Title for the overall graph (default='Revenue Analysis')
+    
+    Required columns in df:
+    - town_column (specified in parameters)
+    - revenue_percentage
+    - total_orders
+    - total_revenue
+    """
+    # Sort by revenue
+    data_sorted = df.sort_values('revenue_percentage', ascending=True)
+    
+    # Create figure with multiple subplots
+    fig = plt.figure(figsize=(15, 15))
+    gs = fig.add_gridspec(3, 1, height_ratios=[2, 1, 1])
+    
+    # 1. Revenue percentage horizontal bar chart
+    ax1 = fig.add_subplot(gs[0])
+    bars = ax1.barh(data_sorted[town_column], data_sorted['revenue_percentage'])
+    ax1.set_xlabel('Revenue Percentage (%)')
+    ax1.set_ylabel(town_column.title())
+    ax1.set_title(f'Revenue Distribution by {town_column.title()} - {graph_title}')
+    
+    # Add percentage labels
+    for bar in bars:
+        width = bar.get_width()
+        ax1.text(width, bar.get_y() + bar.get_height()/2, 
+                f'{width:.1f}%', va='center')
+
+    # 2. Cumulative percentage plot
+    ax2 = fig.add_subplot(gs[1])
+    data_sorted['cumulative_percentage'] = data_sorted['revenue_percentage'].cumsum()
+    ax2.plot(range(len(data_sorted)), data_sorted['cumulative_percentage'], 
+            marker='o', color='red')
+    ax2.set_xlabel(f'Number of {town_column.title()}s')
+    ax2.set_ylabel('Cumulative Revenue %')
+    ax2.set_title('Revenue Concentration')
+    ax2.grid(True)
+    
+    # Add reference lines and legend
+    ax2.axhline(y=80, color='g', linestyle='--', alpha=0.5, label='80% Revenue')
+    ax2.axhline(y=50, color='b', linestyle='--', alpha=0.5, label='50% Revenue')
+    ax2.legend()
+
+    # 3. Scatter plot of orders vs revenue percentage
+    ax3 = fig.add_subplot(gs[2])
+    scatter = ax3.scatter(data_sorted['total_orders'], 
+                         data_sorted['revenue_percentage'],
+                         alpha=0.6)
+    ax3.set_xlabel('Number of Orders')
+    ax3.set_ylabel('Revenue Percentage (%)')
+    ax3.set_title('Orders vs Revenue Percentage')
+    ax3.grid(True, linestyle='--', alpha=0.7)
+    
+    # Add town labels to top 5 points
+    top_5 = data_sorted.nlargest(5, 'revenue_percentage')
+    for idx, row in top_5.iterrows():
+        ax3.annotate(row[town_column], 
+                    (row['total_orders'], row['revenue_percentage']),
+                    xytext=(5, 5), textcoords='offset points')
+
+    # Add statistics
+    stats_text = (
+        f'Total Revenue: ${data_sorted["total_revenue"].sum():,.2f}\n'
+        f'Number of {town_column.title()}s: {len(data_sorted):,}\n'
+        f'Top 3 {town_column.title()}s: '
+        f'{", ".join(data_sorted.nlargest(3, "revenue_percentage")[town_column].values)}\n'
+        f'Top 20% {town_column.title()}s Revenue: '
+        f'{data_sorted.nlargest(len(data_sorted)//5, "revenue_percentage")["revenue_percentage"].sum():.1f}%\n'
+        f'Median {town_column.title()} Revenue: {data_sorted["revenue_percentage"].median():.2f}%'
+    )
+    
+    plt.figtext(0.02, 0.02, stats_text, 
+                bbox=dict(facecolor='white', alpha=0.8))
+    
+    plt.tight_layout()
+    return fig
