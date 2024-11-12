@@ -16,7 +16,7 @@ WITH product_metrics AS (
 ),
 total_rev AS (
     SELECT SUM(total_revenue) as total_company_revenue
-    FROM product_metrics
+    FROM product_metrics  -- Changed from orders to product_metrics
 )
 SELECT 
     p.*,
