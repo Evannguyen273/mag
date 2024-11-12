@@ -121,3 +121,98 @@ def analyze_top_products(df):
     print(f"Average Short Pick Rate: {df['short_pick_rate'].mean():.2f}%")
     print(f"Average Delivery Failure Rate: {df['delivery_failure_rate'].mean():.2f}%")
     print(f"\nTotal Revenue Contribution of Top 20 Products: {df['revenue_percentage'].sum():.2f}%")
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------
+# Top 20 Products Delivery Performance Analysis
+
+## Revenue Performance
+- Top revenue contributor: Grenada linen blend trousers (0.31% of total revenue)
+- Top 3 products account for 0.84% of total revenue:
+ 1. Grenada linen blend trousers (0.31%)
+ 2. SO Wave Linen Regular fit (0.27%) 
+ 3. SO Tristan Reg Linen Trouser (0.25%)
+
+## Order Volume Analysis
+- Highest order volume: Saku Micro Tshirt (59,979 orders)
+- Average orders per product: 26,892 orders
+- 5 products with highest order volumes:
+ 1. Saku Micro Tshirt (59,979)
+ 2. Grenada linen blend trousers (56,692)
+ 3. Tiara HW wide cropped (41,018)
+ 4. Melrose Linen Shirt (35,082)
+ 5. Florida s/s midi dress (34,103)
+
+## Delivery Performance Metrics
+
+### On-Time Delivery
+- Average on-time delivery rate: 82.6%
+- Best performers:
+ 1. Acapulco l/s midi dress (86.94%)
+ 2. Blake Linen Slim Blz (85.96%)
+ 3. SO Wave Linen Regular fit (86.08%)
+- Products needing attention:
+ 1. LMBD Slim Straight HW(1) (77.39%)
+ 2. Patricia LL PJ (J) (77.22%)
+
+### Short Pick Rate
+- Average short pick rate: 1.29%
+- Products with highest short pick rates:
+ 1. Saku Micro Tshirt (2.18%)
+ 2. Tiara HW wide cropped (2.07%)
+ 3. Jordan HW slim mom denim (1.62%)
+- Best performers:
+ 1. SO Tristan Reg Linen Trouser (0.57%)
+ 2. Brooklyn mohair sweater (0.59%)
+ 3. Patricia LL PJ (J) (0.79%)
+
+### Delivery Failure Rate
+- Average failure rate: 0.37%
+- Products with highest failure rates:
+ 1. SO Wave Linen Regular fit (0.47%)
+ 2. Acapulco l/s midi dress (0.52%)
+ 3. SO Tristan Reg Linen Trouser (0.58%)
+
+## Price Analysis
+- Average price range: 53.66 - 622.73 SEK
+- Highest priced items:
+ 1. Blake Linen Slim Blz (622.73 SEK)
+ 2. Acapulco l/s midi dress (269.95 SEK)
+ 3. SO Tristan Reg Linen Trouser (407.77 SEK)
+
+## Key Insights
+1. **Volume vs Performance**:
+  - High-volume products generally maintain good delivery performance
+  - Saku Micro Tshirt shows higher short pick rates despite high volume
+  
+2. **Price Impact**:
+  - Higher-priced items tend to have better on-time delivery rates
+  - Premium products show lower short pick rates
+
+3. **Areas for Improvement**:
+  - Focus on reducing short pick rates for high-volume products
+  - Improve on-time delivery for LMBD Slim Straight HW(1)
+  - Address delivery failures for top revenue contributors
+
+## Recommendations
+1. **Inventory Management**:
+  - Optimize stock levels for high-volume products
+  - Implement better prediction models for Saku Micro Tshirt
+
+2. **Delivery Process**:
+  - Review delivery protocols for high-value items
+  - Strengthen fulfillment process for top revenue generators
+
+3. **Performance Monitoring**:
+  - Set up daily monitoring for top revenue products
+  - Implement early warning system for delivery failures
