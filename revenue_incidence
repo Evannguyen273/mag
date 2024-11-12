@@ -1,0 +1,82 @@
+-- 1. First identify bestsellers based on order volume and revenue
+WITH bestsellers AS (
+    SELECT 
+        p.product_name,
+        p.variantcode,
+        COUNT(DISTINCT o.orderid) as total_orders,
+        SUM(p.product_price) as total_revenue,
+        AVG(CASE WHEN o.is_short_pick = TRUE THEN 1 ELSE 0 END) * 100 as short_pick_rate,
+        AVG(CASE WHEN o.is_zero_pick = TRUE THEN 1 ELSE 0 END) * 100 as zero_pick_rate,
+        AVG(CASE WHEN o.is_on_time = TRUE THEN 1 ELSE 0 END) * 100 as on_time_rate,
+        AVG(CASE WHEN o.is_delivery_failure = TRUE THEN 1 ELSE 0 END) * 100 as delivery_failure_rate
+    FROM orders o
+    JOIN products p ON o.variantcode = p.variantcode
+    WHERE o.country = 'SE'  -- or 'CA' for Canada
+    GROUP BY p.product_name, p.variantcode
+    HAVING COUNT(DISTINCT o.orderid) >= 100  -- minimum order threshold
+),
+ranked_products AS (
+    SELECT *,
+        ROW_NUMBER() OVER (ORDER BY total_revenue DESC) as revenue_rank,
+        ROW_NUMBER() OVER (ORDER BY total_orders DESC) as order_rank
+    FROM bestsellers
+)
+SELECT 
+    product_name,
+    total_orders,
+    total_revenue,
+    short_pick_rate,
+    zero_pick_rate,
+    on_time_rate,
+    delivery_failure_rate,
+    revenue_rank,
+    order_rank
+FROM ranked_products
+WHERE revenue_rank <= 20 OR order_rank <= 20;
+
+-- 2. Analyze delivery performance by time period
+WITH daily_performance AS (
+    SELECT 
+        DATE_TRUNC('day', o.orderdate_timestamp) as order_date,
+        p.product_name,
+        COUNT(DISTINCT o.orderid) as daily_orders,
+        SUM(CASE WHEN o.is_short_pick = TRUE THEN 1 ELSE 0 END) as short_picks,
+        SUM(CASE WHEN o.is_zero_pick = TRUE THEN 1 ELSE 0 END) as zero_picks,
+        SUM(CASE WHEN o.is_delivery_failure = TRUE THEN 1 ELSE 0 END) as delivery_failures
+    FROM orders o
+    JOIN products p ON o.variantcode = p.variantcode
+    WHERE o.country = 'SE'
+    GROUP BY DATE_TRUNC('day', o.orderdate_timestamp), p.product_name
+)
+SELECT 
+    product_name,
+    AVG(daily_orders) as avg_daily_orders,
+    AVG(short_picks * 100.0 / NULLIF(daily_orders, 0)) as avg_short_pick_rate,
+    AVG(zero_picks * 100.0 / NULLIF(daily_orders, 0)) as avg_zero_pick_rate,
+    AVG(delivery_failures * 100.0 / NULLIF(daily_orders, 0)) as avg_failure_rate,
+    STDDEV(daily_orders) as order_volatility
+FROM daily_performance
+GROUP BY product_name
+HAVING COUNT(*) >= 30  -- minimum 30 days of data
+ORDER BY avg_daily_orders DESC
+LIMIT 20;
+
+-- 3. Analyze carrier performance for bestsellers
+SELECT 
+    p.product_name,
+    o.carrier,
+    COUNT(DISTINCT o.orderid) as total_orders,
+    AVG(CASE WHEN o.is_on_time = TRUE THEN 1 ELSE 0 END) * 100 as on_time_rate,
+    AVG(CASE WHEN o.is_delivery_failure = TRUE THEN 1 ELSE 0 END) * 100 as failure_rate,
+    AVG(o.order_deliverycost) as avg_delivery_cost
+FROM orders o
+JOIN products p ON o.variantcode = p.variantcode
+WHERE o.country = 'SE'
+    AND p.product_name IN (
+        SELECT product_name 
+        FROM bestsellers 
+        WHERE revenue_rank <= 20
+    )
+GROUP BY p.product_name, o.carrier
+HAVING COUNT(DISTINCT o.orderid) >= 50
+ORDER BY total_orders DESC;
