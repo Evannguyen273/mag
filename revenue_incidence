@@ -3,11 +3,12 @@ WITH bestsellers AS (
     SELECT 
         product_name,
         COUNT(orderid) as total_orders,
-        SUM(daily_revenue) as total_revenue,
-        AVG(CAST(is_short_pick AS FLOAT)) * 100 as short_pick_rate,
-        AVG(CAST(is_zero_pick AS FLOAT)) * 100 as zero_pick_rate,
-        AVG(CAST(is_on_time AS FLOAT)) * 100 as on_time_rate,
-        AVG(CAST(is_delivery_failure AS FLOAT)) * 100 as delivery_failure_rate
+        SUM(product_price) as total_revenue,
+        AVG(CAST(is_short_pick AS FLOAT64)) * 100 as short_pick_rate,
+        AVG(CAST(is_zero_pick AS FLOAT64)) * 100 as zero_pick_rate,
+        AVG(CAST(is_on_time AS FLOAT64)) * 100 as on_time_rate,
+        AVG(CAST(is_delivery_failure AS FLOAT64)) * 100 as delivery_failure_rate,
+        AVG(product_price) as avg_price
     FROM orders
     GROUP BY product_name
     HAVING COUNT(orderid) >= 100  -- minimum order threshold
@@ -25,43 +26,94 @@ WITH top_products AS (
     SELECT product_name
     FROM orders
     GROUP BY product_name
-    ORDER BY SUM(daily_revenue) DESC
+    ORDER BY SUM(product_price) DESC
     LIMIT 20
 )
 SELECT 
-    order_day,
+    DATE(order_day) as order_date,
     product_name,
     COUNT(orderid) as daily_orders,
-    AVG(CAST(is_short_pick AS FLOAT)) * 100 as short_pick_rate,
-    AVG(CAST(is_zero_pick AS FLOAT)) * 100 as zero_pick_rate,
-    AVG(CAST(is_on_time AS FLOAT)) * 100 as on_time_rate,
-    AVG(CAST(is_delivery_failure AS FLOAT)) * 100 as failure_rate
+    AVG(CAST(is_short_pick AS FLOAT64)) * 100 as short_pick_rate,
+    AVG(CAST(is_zero_pick AS FLOAT64)) * 100 as zero_pick_rate,
+    AVG(CAST(is_on_time AS FLOAT64)) * 100 as on_time_rate,
+    AVG(CAST(is_delivery_failure AS FLOAT64)) * 100 as failure_rate,
+    SUM(product_price) as daily_revenue,
+    AVG(product_price) as avg_price
 FROM orders
 WHERE product_name IN (SELECT product_name FROM top_products)
-GROUP BY order_day, product_name
-ORDER BY order_day;
+GROUP BY DATE(order_day), product_name
+ORDER BY order_date;
 
 -- 3. Delivery performance by carrier for bestsellers
 WITH top_products AS (
     SELECT product_name
     FROM orders
     GROUP BY product_name
-    ORDER BY SUM(daily_revenue) DESC
+    ORDER BY SUM(product_price) DESC
     LIMIT 20
 )
 SELECT 
     carrier,
     COUNT(orderid) as total_deliveries,
-    AVG(CAST(is_on_time AS FLOAT)) * 100 as on_time_rate,
-    AVG(CAST(is_delivery_failure AS FLOAT)) * 100 as failure_rate,
-    AVG(CAST(is_short_pick AS FLOAT)) * 100 as short_pick_rate
+    AVG(CAST(is_on_time AS FLOAT64)) * 100 as on_time_rate,
+    AVG(CAST(is_delivery_failure AS FLOAT64)) * 100 as failure_rate,
+    AVG(CAST(is_short_pick AS FLOAT64)) * 100 as short_pick_rate,
+    AVG(product_price) as avg_price,
+    SUM(product_price) as total_revenue
 FROM orders
 WHERE product_name IN (SELECT product_name FROM top_products)
 GROUP BY carrier
 HAVING COUNT(orderid) >= 50
 ORDER BY total_deliveries DESC;
 
--- 4. Trend analysis for delivery issues
+-- 4. Weekly trend analysis for delivery issues
 SELECT 
-    DATE_TRUNC('week', order_day) as week,
-    COUNT(orderid) as to
+    DATE_TRUNC(order_day, WEEK) as week,
+    COUNT(orderid) as total_orders,
+    AVG(CAST(is_short_pick AS FLOAT64)) * 100 as short_pick_rate,
+    AVG(CAST(is_zero_pick AS FLOAT64)) * 100 as zero_pick_rate,
+    AVG(CAST(is_on_time AS FLOAT64)) * 100 as on_time_rate,
+    AVG(CAST(is_delivery_failure AS FLOAT64)) * 100 as failure_rate,
+    SUM(product_price) as weekly_revenue,
+    AVG(product_price) as avg_price
+FROM orders
+WHERE product_name IN (
+    SELECT product_name
+    FROM orders
+    GROUP BY product_name
+    ORDER BY SUM(product_price) DESC
+    LIMIT 20
+)
+GROUP BY DATE_TRUNC(order_day, WEEK)
+ORDER BY week;
+
+-- 5. Additional analysis: Price range impact on delivery
+WITH price_ranges AS (
+    SELECT 
+        product_name,
+        CASE 
+            WHEN product_price < 100 THEN 'Low (<100)'
+            WHEN product_price < 500 THEN 'Medium (100-500)'
+            ELSE 'High (>500)'
+        END as price_range,
+        is_short_pick,
+        is_zero_pick,
+        is_on_time,
+        is_delivery_failure
+    FROM orders
+)
+SELECT 
+    price_range,
+    COUNT(*) as total_orders,
+    AVG(CAST(is_short_pick AS FLOAT64)) * 100 as short_pick_rate,
+    AVG(CAST(is_zero_pick AS FLOAT64)) * 100 as zero_pick_rate,
+    AVG(CAST(is_on_time AS FLOAT64)) * 100 as on_time_rate,
+    AVG(CAST(is_delivery_failure AS FLOAT64)) * 100 as failure_rate
+FROM price_ranges
+GROUP BY price_range
+ORDER BY 
+    CASE price_range
+        WHEN 'Low (<100)' THEN 1
+        WHEN 'Medium (100-500)' THEN 2
+        WHEN 'High (>500)' THEN 3
+    END;
