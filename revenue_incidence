@@ -15,12 +15,15 @@ WITH product_metrics AS (
     HAVING COUNT(DISTINCT orderid) >= 100
 ),
 total_rev AS (
-    SELECT SUM(total_revenue) as total_company_revenue
-    FROM product_metrics  -- Changed from orders to product_metrics
+    SELECT 
+        SUM(CAST(product_price AS FLOAT64)) as total_company_revenue
+    FROM orders
+    WHERE product_price IS NOT NULL  -- Include only valid prices
+      AND product_name IS NOT NULL   -- Include only valid products
 )
 SELECT 
     p.*,
-    ROUND((p.total_revenue / t.total_company_revenue * 100), 2) as revenue_percentage,
+    ROUND((p.total_revenue / NULLIF(t.total_company_revenue, 0) * 100), 2) as revenue_percentage,
     ROW_NUMBER() OVER (ORDER BY p.total_revenue DESC) as revenue_rank
 FROM product_metrics p
 CROSS JOIN total_rev t
