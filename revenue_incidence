@@ -192,3 +192,7 @@ def analyze_top_products_delivery(df):
 # Example usage:
 # df = pd.read_sql(query, connection)
 # analyze_top_products_delivery(df)
+
+# Example usage:
+# df = pd.read_sql(query, connection)
+# analyze_top_products_delivery(df)
