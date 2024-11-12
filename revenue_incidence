@@ -37,162 +37,87 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def analyze_top_products_delivery(df):
-    """
-    Create comprehensive delivery analysis visualizations for top 20 products
-    
-    Parameters:
-    df: DataFrame with columns: product_name, total_orders, total_revenue, 
-        short_pick_rate, zero_pick_rate, on_time_rate, delivery_failure_rate,
-        avg_price, revenue_percentage
-    """
-    
+# Assuming your data is in a DataFrame called 'df'
+# If not, create DataFrame from your data first
+
+def analyze_top_products(df):
     plt.style.use('seaborn')
-    
-    # Create figure with subplots
     fig = plt.figure(figsize=(20, 25))
-    gs = fig.add_gridspec(4, 2)
     
-    # 1. Revenue and Orders Overview (Top plot, spans both columns)
-    ax1 = fig.add_subplot(gs[0, :])
+    # 1. Revenue Contribution and Delivery Success
+    ax1 = plt.subplot(3, 1, 1)
     x = range(len(df))
     width = 0.35
     
-    # Revenue bars
-    ax1_1 = ax1.bar(x, df['revenue_percentage'], width, label='Revenue %', color='skyblue')
-    ax1.set_ylabel('Revenue Percentage (%)', color='skyblue')
+    # Revenue percentage bars
+    bars = ax1.bar(x, df['revenue_percentage'], width, label='Revenue %', color='skyblue')
+    ax1.set_ylabel('Revenue Percentage (%)', color='darkblue', fontsize=10)
+    ax1.tick_params(axis='y', labelcolor='darkblue')
     
-    # Orders line on secondary axis
+    # On-time rate line on secondary axis
     ax2 = ax1.twinx()
-    line = ax2.plot(x, df['total_orders'], color='red', linewidth=2, label='Orders')
-    ax2.set_ylabel('Number of Orders', color='red')
+    line = ax2.plot(x, df['on_time_rate'], color='red', linewidth=2, label='On-time Rate %', marker='o')
+    ax2.set_ylabel('On-time Delivery Rate (%)', color='red', fontsize=10)
+    ax2.tick_params(axis='y', labelcolor='red')
+    
+    # Formatting
+    plt.title('Revenue Contribution and Delivery Performance by Product', pad=20, fontsize=14)
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(df['product_name'], rotation=45, ha='right')
     
     # Combine legends
-    lines = ax1_1 + line
-    labels = [l.get_label() for l in lines]
+    lines = bars.get_children()[:1] + line
+    labels = ['Revenue %', 'On-time Rate %']
     ax1.legend(lines, labels, loc='upper right')
     
-    plt.title('Revenue Contribution and Order Volume by Product')
-    plt.xticks(x, df['product_name'], rotation=45, ha='right')
-    
-    # 2. Delivery Performance Matrix
-    ax3 = fig.add_subplot(gs[1, 0])
+    # 2. Delivery Issues Matrix
+    ax3 = plt.subplot(3, 1, 2)
     scatter = ax3.scatter(df['short_pick_rate'], 
                          df['delivery_failure_rate'],
-                         s=df['total_orders']/50,
+                         s=df['total_orders']/30,  # Adjust size scaling as needed
                          c=df['revenue_percentage'],
                          cmap='YlOrRd',
-                         alpha=0.6)
-    ax3.set_xlabel('Short Pick Rate (%)')
-    ax3.set_ylabel('Delivery Failure Rate (%)')
-    ax3.set_title('Delivery Performance Matrix\n(Size: Orders, Color: Revenue %)')
-    plt.colorbar(scatter, ax=ax3, label='Revenue %')
+                         alpha=0.7)
     
-    # Add annotations for top 5 revenue products
-    top_5 = df.head()
-    for idx, row in top_5.iterrows():
-        ax3.annotate(row['product_name'][:10],
+    # Add labels for each point
+    for idx, row in df.iterrows():
+        ax3.annotate(row['product_name'][:15] + '...',
                     (row['short_pick_rate'], row['delivery_failure_rate']),
-                    xytext=(5, 5), textcoords='offset points')
+                    xytext=(5, 5), textcoords='offset points',
+                    fontsize=8)
     
-    # 3. Success Metrics Comparison
-    ax4 = fig.add_subplot(gs[1, 1])
-    metrics = ['on_time_rate', 'short_pick_rate', 'zero_pick_rate', 'delivery_failure_rate']
-    top_10 = df.head(10)
+    ax3.set_xlabel('Short Pick Rate (%)', fontsize=10)
+    ax3.set_ylabel('Delivery Failure Rate (%)', fontsize=10)
+    ax3.set_title('Delivery Performance Matrix\n(Size: Order Volume, Color: Revenue %)', pad=20, fontsize=14)
+    plt.colorbar(scatter, label='Revenue %')
     
-    x = range(len(top_10))
-    width = 0.2
-    multiplier = 0
-    
-    for metric in metrics:
-        offset = width * multiplier
-        ax4.bar([x + offset for x in range(len(top_10))],
-                top_10[metric],
-                width,
-                label=metric)
-        multiplier += 1
-    
-    ax4.set_ylabel('Rate (%)')
-    ax4.set_title('Delivery Metrics Comparison (Top 10 Products)')
-    ax4.set_xticks([x + width*1.5 for x in range(len(top_10))])
-    ax4.set_xticklabels(top_10['product_name'], rotation=45, ha='right')
-    ax4.legend(loc='upper right', bbox_to_anchor=(1, 1.15))
-    
-    # 4. Price vs Performance
-    ax5 = fig.add_subplot(gs[2, 0])
-    scatter2 = ax5.scatter(df['avg_price'],
+    # 3. Volume vs Success Rate
+    ax4 = plt.subplot(3, 1, 3)
+    scatter2 = ax4.scatter(df['total_orders'],
                           df['on_time_rate'],
-                          s=df['total_orders']/50,
-                          c=df['revenue_percentage'],
-                          cmap='YlOrRd',
-                          alpha=0.6)
-    ax5.set_xlabel('Average Price')
-    ax5.set_ylabel('On-Time Delivery Rate (%)')
-    ax5.set_title('Price vs On-Time Performance\n(Size: Orders, Color: Revenue %)')
-    plt.colorbar(scatter2, ax=ax5, label='Revenue %')
+                          s=df['revenue_percentage']*50,  # Adjust size scaling as needed
+                          c=df['avg_price'],
+                          cmap='viridis',
+                          alpha=0.7)
     
-    # 5. Revenue vs Success Rate Correlation
-    ax6 = fig.add_subplot(gs[2, 1])
-    ax6.scatter(df['revenue_percentage'],
-                df['on_time_rate'],
-                s=df['total_orders']/50,
-                alpha=0.6)
-    ax6.set_xlabel('Revenue Percentage (%)')
-    ax6.set_ylabel('On-Time Delivery Rate (%)')
-    ax6.set_title('Revenue Contribution vs Delivery Success')
+    # Add labels for each point
+    for idx, row in df.iterrows():
+        ax4.annotate(row['product_name'][:15] + '...',
+                    (row['total_orders'], row['on_time_rate']),
+                    xytext=(5, 5), textcoords='offset points',
+                    fontsize=8)
     
-    for idx, row in top_5.iterrows():
-        ax6.annotate(row['product_name'][:10],
-                    (row['revenue_percentage'], row['on_time_rate']),
-                    xytext=(5, 5), textcoords='offset points')
+    ax4.set_xlabel('Total Orders', fontsize=10)
+    ax4.set_ylabel('On-time Rate (%)', fontsize=10)
+    ax4.set_title('Order Volume vs Delivery Success\n(Size: Revenue %, Color: Average Price)', pad=20, fontsize=14)
+    plt.colorbar(scatter2, label='Average Price')
     
-    # 6. Statistical Summary Table
-    ax7 = fig.add_subplot(gs[3, :])
-    ax7.axis('tight')
-    ax7.axis('off')
-    
-    # Calculate statistics
-    stats_data = [
-        ['Metric', 'Average', 'Min', 'Max', 'Std Dev'],
-        ['On-Time Rate (%)', 
-         f"{df['on_time_rate'].mean():.2f}",
-         f"{df['on_time_rate'].min():.2f}",
-         f"{df['on_time_rate'].max():.2f}",
-         f"{df['on_time_rate'].std():.2f}"],
-        ['Short Pick Rate (%)',
-         f"{df['short_pick_rate'].mean():.2f}",
-         f"{df['short_pick_rate'].min():.2f}",
-         f"{df['short_pick_rate'].max():.2f}",
-         f"{df['short_pick_rate'].std():.2f}"],
-        ['Revenue Contribution (%)',
-         f"{df['revenue_percentage'].mean():.2f}",
-         f"{df['revenue_percentage'].min():.2f}",
-         f"{df['revenue_percentage'].max():.2f}",
-         f"{df['revenue_percentage'].std():.2f}"]
-    ]
-    
-    table = ax7.table(cellText=stats_data,
-                     loc='center',
-                     cellLoc='center',
-                     colWidths=[0.2, 0.2, 0.2, 0.2, 0.2])
-    table.auto_set_font_size(False)
-    table.set_fontsize(9)
-    table.scale(1.2, 1.5)
-    
-    # Adjust layout
     plt.tight_layout()
     plt.show()
     
-    # Print correlation analysis
-    print("\nCorrelation Analysis:")
-    correlations = df[['revenue_percentage', 'on_time_rate', 
-                      'short_pick_rate', 'delivery_failure_rate']].corr()
-    print(correlations['revenue_percentage'].sort_values(ascending=False))
-
-# Example usage:
-# df = pd.read_sql(query, connection)
-# analyze_top_products_delivery(df)
-
-# Example usage:
-# df = pd.read_sql(query, connection)
-# analyze_top_products_delivery(df)
+    # Print summary statistics
+    print("\nSummary Statistics:")
+    print(f"Average On-time Rate: {df['on_time_rate'].mean():.2f}%")
+    print(f"Average Short Pick Rate: {df['short_pick_rate'].mean():.2f}%")
+    print(f"Average Delivery Failure Rate: {df['delivery_failure_rate'].mean():.2f}%")
+    print(f"\nTotal Revenue Contribution of Top 20 Products: {df['revenue_percentage'].sum():.2f}%")
