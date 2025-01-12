@@ -47,13 +47,18 @@
         .ai-message {
             background-color: #f5f5f5;
         }
+        #status {
+            color: #666;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
+    <div id="status">Connecting...</div>
     <div id="chat-box"></div>
     <div class="input-container">
-        <input type="text" id="user-input" placeholder="Type your message...">
-        <button id="send-button">Send</button>
+        <input type="text" id="user-input" placeholder="Type your message..." disabled>
+        <button id="send-button" disabled>Send</button>
     </div>
 
     <script>
@@ -61,14 +66,12 @@
             const chatBox = document.getElementById('chat-box');
             const userInput = document.getElementById('user-input');
             const sendButton = document.getElementById('send-button');
-
-            // Connect to Web PubSub
-            const response = await fetch('/negotiate');
-            const data = await response.json();
-            const ws = new WebSocket(data.url);
+            const statusDiv = document.getElementById('status');
+            let webSocket;
 
             // Add message to chat box
             function addMessage(text, isUser) {
+                console.log('Adding message:', text, 'isUser:', isUser);  // Debug log
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
                 messageDiv.textContent = text;
@@ -79,28 +82,73 @@
             // Function to send message
             function sendMessage() {
                 const message = userInput.value.trim();
-                if (message) {
+                if (message && webSocket && webSocket.readyState === WebSocket.OPEN) {
+                    console.log('Sending message:', message);  // Debug log
                     addMessage(message, true);
-                    ws.send(message);
+                    webSocket.send(message);
                     userInput.value = '';
+                } else {
+                    console.log('Cannot send message:', {
+                        message: message,
+                        webSocket: webSocket ? true : false,
+                        readyState: webSocket ? webSocket.readyState : 'no socket'
+                    });  // Debug log
                 }
             }
 
-            // Handle WebSocket connection
-            ws.onopen = () => console.log('Connected');
-            ws.onmessage = (event) => {
-                addMessage(event.data, false);
-            };
+            try {
+                // Connect to Web PubSub
+                console.log('Fetching negotiate endpoint');  // Debug log
+                const response = await fetch('/negotiate');
+                const data = await response.json();
+                console.log('Got WebSocket URL:', data.url);  // Debug log
 
-            // Handle button click
-            sendButton.addEventListener('click', sendMessage);
+                webSocket = new WebSocket(data.url);
 
-            // Handle Enter key
-            userInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
+                // Handle WebSocket connection
+                webSocket.onopen = () => {
+                    console.log('WebSocket connected');  // Debug log
+                    statusDiv.textContent = 'Connected';
+                    userInput.disabled = false;
+                    sendButton.disabled = false;
+                };
+
+                webSocket.onclose = () => {
+                    console.log('WebSocket disconnected');  // Debug log
+                    statusDiv.textContent = 'Disconnected';
+                    userInput.disabled = true;
+                    sendButton.disabled = true;
+                };
+
+                webSocket.onerror = (error) => {
+                    console.error('WebSocket error:', error);  // Debug log
+                    statusDiv.textContent = 'Error: ' + error;
+                };
+
+                webSocket.onmessage = (event) => {
+                    console.log('Received message:', event.data);  // Debug log
+                    try {
+                        const data = JSON.parse(event.data);
+                        addMessage(data.message, !data.isAi);
+                    } catch (e) {
+                        addMessage(event.data, false);
+                    }
+                };
+
+                // Handle button click
+                sendButton.addEventListener('click', sendMessage);
+
+                // Handle Enter key
+                userInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+
+            } catch (error) {
+                console.error('Setup error:', error);  // Debug log
+                statusDiv.textContent = 'Error: ' + error.message;
+            }
         })();
     </script>
 </body>
