@@ -25,89 +25,61 @@ def handle_message(message):
 if __name__ == '__main__':
     socketio.run(app, debug=True, port=8080)
 
-# templates/index.html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chat Interface</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <style>
-        .chat-container {
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
-            border: 1px solid #ccc;
+// In index.html, replace the socket.io script section with:
+<script>
+    // Connect to Socket.IO server with explicit URL
+    const socket = io('http://localhost:8080', {
+        transports: ['websocket'],
+        cors: {
+            origin: "http://localhost:8080"
         }
-        .chat-messages {
-            height: 400px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            padding: 10px;
-            margin-bottom: 20px;
-        }
-        .message-input {
-            display: flex;
-            gap: 10px;
-        }
-        input {
-            flex-grow: 1;
-            padding: 8px;
-        }
-        button {
-            padding: 8px 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="chat-container">
-        <div class="chat-messages" id="messages"></div>
-        <div class="message-input">
-            <input type="text" id="messageInput" placeholder="Type your message...">
-            <button onclick="sendMessage()">Send</button>
-        </div>
-    </div>
+    });
 
-    <script>
-        // Connect to Socket.IO server
-        const socket = io();
-        const messagesDiv = document.getElementById('messages');
-        const messageInput = document.getElementById('messageInput');
+    const messagesDiv = document.getElementById('messages');
+    const messageInput = document.getElementById('messageInput');
 
-        // Handle sending messages
-        function sendMessage() {
-            const message = messageInput.value.trim();
-            if (message) {
-                // Add user message to chat
-                appendMessage('You: ' + message);
-                // Send to server
-                socket.emit('message', message);
-                // Clear input
-                messageInput.value = '';
-            }
+    // Add connection status handling
+    socket.on('connect', () => {
+        console.log('Connected to server');
+        appendMessage('System: Connected to server');
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Disconnected from server');
+        appendMessage('System: Disconnected from server');
+    });
+
+    socket.on('connect_error', (error) => {
+        console.error('Connection error:', error);
+        appendMessage('System: Connection error');
+    });
+
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        if (message) {
+            console.log('Sending message:', message);
+            appendMessage('You: ' + message);
+            socket.emit('message', message);
+            messageInput.value = '';
         }
+    }
 
-        // Handle receiving responses
-        socket.on('response', function(response) {
-            appendMessage('AI: ' + response);
-        });
+    socket.on('response', function(response) {
+        console.log('Received response:', response);
+        appendMessage('AI: ' + response);
+    });
 
-        // Helper function to append messages
-        function appendMessage(message) {
-            const messageElement = document.createElement('div');
-            messageElement.textContent = message;
-            messagesDiv.appendChild(messageElement);
-            // Auto scroll to bottom
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    function appendMessage(message) {
+        console.log('Appending message:', message);
+        const messageElement = document.createElement('div');
+        messageElement.textContent = message;
+        messagesDiv.appendChild(messageElement);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
         }
-
-        // Handle Enter key
-        messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-    </script>
-</body>
-</html>
+    });
+</script>
