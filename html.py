@@ -16,11 +16,25 @@
             overflow-y: auto;
             margin-bottom: 20px;
         }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
         #user-input {
-            width: 100%;
+            flex-grow: 1;
             padding: 10px;
-            margin-bottom: 10px;
             box-sizing: border-box;
+        }
+        #send-button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #send-button:hover {
+            background-color: #45a049;
         }
         .message {
             margin: 10px 0;
@@ -37,12 +51,16 @@
 </head>
 <body>
     <div id="chat-box"></div>
-    <input type="text" id="user-input" placeholder="Type your message...">
+    <div class="input-container">
+        <input type="text" id="user-input" placeholder="Type your message...">
+        <button id="send-button">Send</button>
+    </div>
 
     <script>
         (async function() {
             const chatBox = document.getElementById('chat-box');
             const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
 
             // Connect to Web PubSub
             const response = await fetch('/negotiate');
@@ -58,19 +76,29 @@
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
 
+            // Function to send message
+            function sendMessage() {
+                const message = userInput.value.trim();
+                if (message) {
+                    addMessage(message, true);
+                    ws.send(message);
+                    userInput.value = '';
+                }
+            }
+
             // Handle WebSocket connection
             ws.onopen = () => console.log('Connected');
             ws.onmessage = (event) => {
                 addMessage(event.data, false);
             };
 
-            // Handle user input
+            // Handle button click
+            sendButton.addEventListener('click', sendMessage);
+
+            // Handle Enter key
             userInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && userInput.value.trim()) {
-                    const message = userInput.value;
-                    addMessage(message, true);
-                    ws.send(message);
-                    userInput.value = '';
+                if (e.key === 'Enter') {
+                    sendMessage();
                 }
             });
         })();
