@@ -1,0 +1,158 @@
+import fitz  # PyMuPDF
+import re
+import json
+from typing import List, Dict, Optional
+from pathlib import Path
+
+class PDFSegmenter:
+    def __init__(self, pdf_path: str, document_id: str):
+        """
+        Initialize PDFSegmenter with a PDF file path and document ID.
+        
+        Args:
+            pdf_path (str): Path to the PDF file
+            document_id (str): Unique identifier for the document
+        """
+        self.pdf_path = Path(pdf_path)
+        self.document_id = document_id
+        self.text = None
+        self.segments = []
+        
+        if not self.pdf_path.exists():
+            raise FileNotFoundError(f"PDF file not found: {pdf_path}")
+    
+    def extract_text(self) -> str:
+        """Extract text from PDF while preserving formatting."""
+        try:
+            doc = fitz.open(self.pdf_path)
+            text_blocks = []
+            
+            for page in doc:
+                text_blocks.append(page.get_text())
+            
+            doc.close()
+            self.text = "\n".join(text_blocks)
+            return self.text
+            
+        except Exception as e:
+            raise Exception(f"Error extracting text from PDF: {str(e)}")
+    
+    def segment_by_header1(self) -> List[Dict]:
+        """
+        Split text by Header 1 (# ) and create JSON objects.
+        Returns list of dictionaries containing segments.
+        """
+        if self.text is None:
+            self.extract_text()
+            
+        # Regular expression for Header 1
+        header1_pattern = r'(?m)^#\s+(.+)$'
+        
+        # Find all Header 1 positions and titles
+        headers = list(re.finditer(header1_pattern, self.text))
+        
+        if not headers:
+            # If no headers found, create single segment with whole text
+            self.segments = [{
+                "document_id": self.document_id,
+                "segment_id": f"{self.document_id}_1",
+                "metadata": {
+                    "title": "Full Document"
+                },
+                "segment_content": self.text
+            }]
+            return self.segments
+        
+        # Process each section
+        for i in range(len(headers)):
+            start = headers[i].start()
+            # If it's the last header, get text until end, else until next header
+            end = headers[i + 1].start() if i < len(headers) - 1 else len(self.text)
+            
+            section_text = self.text[start:end].strip()
+            header_title = headers[i].group(1).strip()
+            
+            # Create segment object
+            segment = {
+                "document_id": self.document_id,
+                "segment_id": f"{self.document_id}_{i+1}",
+                "metadata": {
+                    "title": header_title
+                },
+                "segment_content": section_text
+            }
+            self.segments.append(segment)
+        
+        return self.segments
+    
+    def save_segments(self, output_path: str, indent: int = 2) -> None:
+        """
+        Save segments to JSON file.
+        
+        Args:
+            output_path (str): Path to save the JSON file
+            indent (int): Number of spaces for JSON indentation
+        """
+        if not self.segments:
+            self.segment_by_header1()
+            
+        try:
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(self.segments, f, indent=indent, ensure_ascii=False)
+        except Exception as e:
+            raise Exception(f"Error saving segments to JSON: {str(e)}")
+    
+    def get_segment_by_id(self, segment_id: str) -> Optional[Dict]:
+        """
+        Retrieve a specific segment by its ID.
+        
+        Args:
+            segment_id (str): ID of the segment to retrieve
+            
+        Returns:
+            Optional[Dict]: Segment dictionary if found, None otherwise
+        """
+        if not self.segments:
+            self.segment_by_header1()
+            
+        for segment in self.segments:
+            if segment['segment_id'] == segment_id:
+                return segment
+        return None
+    
+    def get_segments_count(self) -> int:
+        """Return the number of segments."""
+        if not self.segments:
+            self.segment_by_header1()
+        return len(self.segments)
+    
+    def get_segment_titles(self) -> List[str]:
+        """Return list of all segment titles."""
+        if not self.segments:
+            self.segment_by_header1()
+        return [segment['metadata']['title'] for segment in self.segments]
+
+# Example usage
+def main():
+    # Initialize segmenter
+    segmenter = PDFSegmenter("example.pdf", "DOC123")
+    
+    # Process the PDF and get segments
+    segments = segmenter.segment_by_header1()
+    
+    # Save to JSON
+    segmenter.save_segments("output_segments.json")
+    
+    # Print summary
+    print(f"Created {segmenter.get_segments_count()} segments:")
+    print("\nSegment titles:")
+    for title in segmenter.get_segment_titles():
+        print(f"- {title}")
+    
+    # Get specific segment
+    segment = segmenter.get_segment_by_id("DOC123_1")
+    if segment:
+        print(f"\nFirst segment title: {segment['metadata']['title']}")
+
+if __name__ == "__main__":
+    main()
