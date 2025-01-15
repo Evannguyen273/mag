@@ -1,0 +1,31 @@
+Most AI chat applications like ChatGPT typically use HTTP with Server-Sent Events (SSE) rather than WebSocket. Here's why:
+
+ChatGPT Approach:
+
+
+Uses HTTP with SSE (Server-Sent Events)
+No WebSocket connection
+Client sends HTTP POST request
+Server keeps connection open and streams responses
+Each token is sent as it's generated
+
+Why SSE over WebSocket:
+
+
+Simpler to implement
+Better support for HTTP features (caching, headers, etc.)
+Works better with existing infrastructure
+Less overhead for this use case
+No need for bidirectional communication
+
+
+When WebSocket IS Used:
+
+
+Real-time collaborative features (like Google Docs)
+Multi-user chat rooms
+Live coding environments
+Gaming applications
+When you need true bidirectional communication
+
+The key difference is that AI chat applications usually don't need constant bidirectional communication - they just need to stream the response back to the user, which SSE handles perfectly well.
