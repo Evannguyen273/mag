@@ -32,3 +32,53 @@ Improved fraud detection accuracy to 95% and handling by 45%, reducing annual fr
 Increased customer retention by 7% through a churn model, generating estimated savings of $100-120 million annually.
 
 Architected advanced clustering pipelines and conversational AI chatbots, dramatically improving operational accuracy and reducing analyst workload.
+
+
+Key Technology Stack Alignment
+Cloud Platforms:
+
+Google Cloud Platform (GCP): BigQuery, Cloud Dataflow, Dataproc.
+
+Azure: Functions, ML Studio, AI Search, Blob Storage, Data Factory, Data Lake Gen 2, Synapse.
+
+AWS: S3, Glue, EMR, Redshift, Lambda.
+
+Programming Languages:
+
+Python: FastAPI, Flask, NumPy, Pandas, Scikit-learn, TensorFlow, Keras, PyTorch, NLTK, SciPy, Matplotlib, Seaborn, Plotly, Scrapy, Gensim.
+
+Java, SQL, R, C++/C, JavaScript.
+
+ML Ops & DevOps:
+
+Infrastructure-as-Code: Terraform.
+
+Containerization & Orchestration: Docker, Kubernetes.
+
+CI/CD Tools: GitHub Actions, GitLab, Jenkins.
+
+Version Control: Git, SVN, Gitbucket.
+
+Concepts: End-to-end MLOps solutions.
+
+Machine Learning & AI Frameworks/Libraries:
+
+ML Frameworks: TensorFlow, PyTorch, scikit-learn, Keras, H2O.
+
+Deep Learning: LSTM, Transformers, Graph Neural Network.
+
+Generative AI/LLMs: Gemini 2.0/1.5 Pro/Flash, GPT-4o, Claude 3.5/3.7 Sonnet, Llama 2, LaMDA, Bard, Llama Index, LangChain, Autogen, CrewAI, LangGraph, MCP, BERT.
+
+Big Data & ETL:
+
+Big Data Technologies: Apache Spark, PySpark, Hadoop, Data Bricks.
+
+Data Warehousing/Lakes: GCP BigQuery, Amazon RedShift, HiveQL, HDFS, Azure Data Lake Gen 2, Snow Flake.
+
+Databases: RDBMS, SQL, MongoDB, HBase, Cassandra, NoSQL.
+
+ETL Tools: Apache Airflow, Dags, AWS Glue, Azure Data Factory.
+
+Data Visualization:
+
+Tools: Tableau, Power BI, Matplotlib, Plotly, Seaborn, ggplot2, d3.js.
