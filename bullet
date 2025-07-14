@@ -1,0 +1,29 @@
+GCP Cloud Infrastructure Design & Implementation: Designed and implemented scalable cloud infrastructure on Google Cloud Platform (GCP) to support machine learning workflows, specifically leveraging GCP BigQuery for large-scale data management and designing hybrid cloud architectures for real-time operational monitoring.
+
+CI/CD Pipeline Development for ML: Developed and managed robust CI/CD pipelines for machine learning models using tools like GitHub Actions and GitLab, ensuring seamless integration, automated deployment, and continuous model retraining cycles for predictive sales and operational analytics solutions.
+
+ML Model Optimization & Collaboration: Collaborated extensively with data scientists and software engineers to optimize machine learning models for performance and scalability, successfully deploying and maintaining ML models into production on GCP and Azure, such as corn yield prediction models.
+
+Monitoring, Logging, and Alerting for ML Systems: Implemented comprehensive monitoring, logging, and alerting solutions for ML systems, leveraging GCP's Cloud Monitoring and Cloud Logging for comprehensive observability to ensure reliability and performance of ML systems.
+
+Automated ML Deployment with Kubernetes: Automated the deployment and scaling of ML models using containerization and orchestration tools like Docker and Kubernetes, specifically leveraging Google Kubernetes Engine (GKE) on GCP for robust, scalable, and fault-tolerant deployments.
+
+Security and Compliance in Cloud & ML Ops: Ensured security and compliance best practices were followed in all cloud and ML operations, integrating these principles into the design and deployment of enterprise-grade ML pipelines on GCP, utilizing services like Cloud IAM and VPC Service Controls for secure environments.
+
+Troubleshooting Cloud & ML Pipelines: Proficiently troubleshoot and resolved complex issues related to cloud infrastructure and ML pipelines, leveraging strong problem-solving skills to optimize high-dimensional data processing and ensure data consistency across retraining cycles.
+
+Python Proficiency for ML & Gen AI: Possess strong proficiency in Python, with extensive experience in developing end-to-end machine learning solutions, including advanced Natural Language Processing (NLP) for sentiment extraction and Generative AI (Gen AI) for conversational AI chatbots and prompt-to-SQL translation engines.
+
+Infrastructure-as-Code (IaC) for GCP: Hands-on experience with infrastructure-as-code principles, including Terraform, applied through the development of cloud infrastructure for ML pipelines on GCP, leveraging services like Cloud Dataflow and Dataproc for scalable data processing.
+
+MLOps Principles & End-to-End Solutions: Demonstrated success in implementing end-to-end MLOps solutions, covering the entire machine learning model lifecycle from data collection and analysis to deployment, monitoring, and maintenance, ensuring operational efficiency and reliability.
+
+Machine Learning Frameworks & Libraries: Advanced knowledge and practical experience with machine learning frameworks and libraries including TensorFlow, PyTorch, and scikit-learn, utilized in developing transformer-based product recommendation systems, fraud detection models, and various forecasting time-series models.
+
+Data Science Techniques & Algorithms: Expertise in various data science techniques and algorithms, including supervised and unsupervised learning, regression, classification, clustering (HDBSCAN, UMAP, PCA), and time series analysis, applied in projects like automated incident classification and corn yield prediction.
+
+Data Preprocessing, Feature Engineering & Model Evaluation: Proficient in data preprocessing, feature engineering, and model evaluation techniques, with a proven track record of optimizing high-dimensional data processing pipelines and creating robust evaluation frameworks to measure response accuracy and business utility.
+
+Big Data Technologies & ETL on GCP: Extensive experience with big data technologies such as Apache Spark and PySpark, leveraging GCP Dataproc and Cloud Dataflow for managing real-time data, tackling massive datasets (hundreds of gigabytes to terabytes), and building robust ETL pipelines for data integration.
+
+Data Visualization & Communication: Familiarity with data visualization tools like Tableau, Power BI, and Matplotlib, used to present data-driven insights, develop UX/UI tools, and effectively communicate complex technical concepts to non-technical stakeholders and executive leadership.
