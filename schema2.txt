@@ -1,0 +1,17 @@
+### device_management_data
+
+| column_name | data_type | description | examples |
+|:---|:---|:---|:---|
+| StoreID | STRING | A unique identifier for the store. | DE0123, SE0456, US0789 |
+| ReportDate | TIMESTAMP | The date and time the report was generated. | 2025-07-18 20:00:32.189888 UTC, 2025-07-18 20:00:30.909059 UTC |
+| SensorAccuracy | NUMERIC | The accuracy of the customer counter sensor |  typically a value between 0 and 1. |
+| TotalInCountforActiveCounters | INTEGER | The total count of people entering the store via active counters. | 145, 203, 512 |
+| TotalOutCountforActiveCounters | INTEGER | The total count of people exiting the store via active counters. | 141, 200, 509 |
+| TransactionCount | INTEGER | The total number of transactions recorded for the period. | 321, 450, 198 |
+| VisitorsOutsideSalesHours | INTEGER | The number of visitors recorded outside of the store's official sales hours. | 12, 37, 262 |
+| ListofActiveCounter | STRING | A list of names or identifiers for the active customer counters. | Main Entrance, 2nd Floor Entrance, Kids Section |
+| ListofInActiveCounter | STRING | A list of names or identifiers for counters that are currently inactive or closed. | Entrance first floor, Entrance Via Tomacelli, No longer exists in store |
+| AverageOfSensorAccLast2BusinessDays | NUMERIC | The average sensor accuracy over the last two business days. | 0.92, 0.85, 0.98 |
+| Todaystorestatus | STRING | The operational status of the store for the current day. | Open, Closed, Holiday Hours |
+| Salesoutsideofopenhours | STRING | Sales recorded outside of the store's opening hours. | 0.00, 15.50, 99.99 |
+| Status | STRING | A detailed status message for the store |  often related to visitor counts or required actions. |
