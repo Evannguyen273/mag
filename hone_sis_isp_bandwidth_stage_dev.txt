@@ -1,8 +1,0 @@
-### device_management_data
-
-| column_name | data_type | description | examples |
-|:---|:---|:---|:---|
-| StoreID | STRING | A unique identifier for the store. | AU0023, DE0226, FR0075 |
-| LogDateUTC | DATETIME | The date and time of the log entry in UTC. | 2025-07-18 20:00:32.189888 UTC, 2025-07-18 20:00:30.909059 UTC |
-| Speed | STRING | The measured internet speed of the device. | 46 Mbps, 6 Mbps, 588.56 Kbps |
-| DeviceID | STRING | A unique identifier for the specific device. | HM-DE0687-QNFF, HM-DE0278-05NK, HM-RS0506-03RV |
